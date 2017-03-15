@@ -1,0 +1,42 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2708";
+
+    fragment@0 {
+        target = <&leds>;
+        __overlay__ {
+
+    		compatible = "gpio-leds";
+	        
+			disk_led {
+				label = "disk_led";
+				gpios = <&gpio 7 1>; // LED1
+				linux,default-trigger = "mmc0";
+			};
+
+			wlan_rx {
+				label = "wlan_rx";
+				gpios = <&gpio 12 1>; // LED2
+				linux,default-trigger = "phy0rx";
+			};
+
+			wlan_tx {
+				label = "wlan_tx";
+				gpios = <&gpio 16 1>; // LED3
+				linux,default-trigger = "phy0tx";
+			};
+
+			user1 {
+				label = "user1";
+				gpios = <&gpio 20 1>; // LED4
+			};
+
+			user2 {
+				label = "user2";
+				gpios = <&gpio 21 1>; // LED5
+			};
+        };
+    };
+};

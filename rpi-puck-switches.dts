@@ -1,0 +1,41 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2708";
+
+    fragment@0 {
+    	target-path = "/soc";
+    	__overlay__ {
+
+    		switches {
+
+				compatible = "gpio-keys";
+
+				switch1 {
+					label = "switch1";
+					gpios = <&gpio 26 1>; // SW1
+					linux,code = <256>;
+				};
+
+				switch2 {
+					label = "switch2";
+					gpios = <&gpio 19 1>; // SW2
+					linux,code = <257>;
+				};
+
+				switch3 {
+					label = "switch3";
+					gpios = <&gpio 13 1>; // SW3
+					linux,code = <258>;
+				};
+
+				switch4 {
+					label = "switch4";
+					gpios = <&gpio 17 1>; // SW4
+					linux,code = <259>;
+				};
+			};
+    	};
+    };
+};
