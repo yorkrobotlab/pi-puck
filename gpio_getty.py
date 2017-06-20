@@ -4,25 +4,28 @@ import os
 import time
 import RPi.GPIO as GPIO
 
+# Change this number if using a different GPIO pin
 pin = 19
 
-GPIO.setmode(GPIO.BCM)   # Use Broadcom (BCM) pin numbering
-GPIO.setup(pin, GPIO.IN) # Input : listen for pin
-
-if GPIO.input(pin):
-	print('Starting getty service on ttyAMA0')
-	os.system("sudo systemctl start serial-getty@ttyAMA0.service")
+# Try to find the primary UART (could be ttyAMA0 or ttyS0), and exit if not found
+tty = ''
+if os.path.exists('/dev/serial0'):
+	ttyPath = os.path.realpath('/dev/serial0')
+	tty = ttyPath.split('/')[-1]
 else:
-	print('Stopping getty service on ttyAMA0')
-	os.system("sudo systemctl stop serial-getty@ttyAMA0.service")
+	exit(0)
 
+# Set up switch pin for input
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(pin, GPIO.IN)
+
+# Either start or stop the getty service, then wait for switch to change
 while True:
-
-	GPIO.wait_for_edge(pin, GPIO.BOTH)
-
 	if GPIO.input(pin):
-		print('Starting getty service on ttyAMA0')
-		os.system("sudo systemctl start serial-getty@ttyAMA0.service")
+		print('Starting getty service on ' + tty)
+		os.system("sudo systemctl start serial-getty@{0}.service".format(tty))
 	else:
-		print('Stopping getty service on ttyAMA0')
-		os.system("sudo systemctl stop serial-getty@ttyAMA0.service")
+		print('Stopping getty service on ' + tty)
+		os.system("sudo systemctl stop serial-getty@{0}.service".format(tty))
+	time.sleep(0.1)
+	GPIO.wait_for_edge(pin, GPIO.BOTH)
