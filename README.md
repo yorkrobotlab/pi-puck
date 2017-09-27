@@ -11,10 +11,14 @@ dtc -@ -I dts -O dtb -W no-unit_address_vs_reg -o pi-puck-v2_0.dtbo overlays/pi-
 
 The resulting `.dtbo` files should then be copied to `/boot/overlays/` on the Raspberry Pi.
 
-To enable an overlay, add the following line to `/boot/config.txt`, using the correct board revision number, and replacing the parameters as detailed below:
+```
+sudo cp *.dtbo /boot/overlays/
+```
+
+To enable an overlay, add the following line to `/boot/config.txt`, using the correct board revision number, and replacing parameters as detailed below:
 
 ```
-dtoverlay=rpi-puck-v2_0:parameters1,parameter2
+dtoverlay=rpi-puck-v2_0:parameter1,parameter2
 ```
 
 The device tree overlays enable the following hardware:
