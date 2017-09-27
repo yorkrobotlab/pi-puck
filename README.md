@@ -5,10 +5,13 @@
 The Device Tree Source (DTS) file for the target board revision must first be compiled into Device Tree Blob (DTB) overlays as follows:
 
 ```
-dtc -@ -I dts -O dtb -o pi-puck-v2_0.dtbo overlays/pi-puck-v2_0.dts
+dtc -@ -I dts -O dtb -W no-unit_address_vs_reg -o pi-puck-v1_0.dtbo overlays/pi-puck-v1_0.dts
+dtc -@ -I dts -O dtb -W no-unit_address_vs_reg -o pi-puck-v2_0.dtbo overlays/pi-puck-v2_0.dts
 ```
 
-The resulting `.dtbo` file should then be copied to `/boot/overlays/` on the Raspberry Pi. To enable the overlay, add the following line to `/boot/config.txt`, using the correct board revision number, and replacing the parameters as detailed below:
+The resulting `.dtbo` files should then be copied to `/boot/overlays/` on the Raspberry Pi.
+
+To enable an overlay, add the following line to `/boot/config.txt`, using the correct board revision number, and replacing the parameters as detailed below:
 
 ```
 dtoverlay=rpi-puck-v2_0:parameters1,parameter2
