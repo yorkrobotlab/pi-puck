@@ -17,7 +17,7 @@ else:
 
 # Set up switch pin for input
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(pin, GPIO.IN)
+GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Either start or stop the getty service, then wait for switch to change
 while True:

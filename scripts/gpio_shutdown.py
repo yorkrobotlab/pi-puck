@@ -9,7 +9,7 @@ pin = 26
 
 # Set up switch pin for input
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(pin, GPIO.IN)
+GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 while True:
 	# Wait indefinitely for a rising edge
