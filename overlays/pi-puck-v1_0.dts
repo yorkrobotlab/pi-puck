@@ -44,7 +44,7 @@
 				compatible = "gpio-keys";
 				pipuck_switch1 {
 					label = "pipuck_switch1";
-					gpios = <&gpio 26 1>; // SW1
+					gpios = <&gpio 26 0>; // SW1
 					linux,code = <256>;
 				};
 			};
@@ -57,17 +57,17 @@
 				compatible = "gpio-keys";
 				pipuck_switch2 {
 					label = "pipuck_switch2";
-					gpios = <&gpio 19 1>; // SW2
+					gpios = <&gpio 19 0>; // SW2
 					linux,code = <257>;
 				};
 				pipuck_switch3 {
 					label = "pipuck_switch3";
-					gpios = <&gpio 13 1>; // SW3
+					gpios = <&gpio 13 0>; // SW3
 					linux,code = <258>;
 				};
 				pipuck_switch4 {
 					label = "pipuck_switch4";
-					gpios = <&gpio 17 1>; // SW4
+					gpios = <&gpio 17 0>; // SW4
 					linux,code = <259>;
 				};
 			};
@@ -83,7 +83,7 @@
 				pipuck_switch1 {
 					label = "shutdown";
 					linux,code = <116>; // KEY_POWER
-					gpios = <&gpio 26 1>;
+					gpios = <&gpio 26 0>;
 				};
 
 			};
