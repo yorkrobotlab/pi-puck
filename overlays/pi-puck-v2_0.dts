@@ -11,7 +11,7 @@
 			compatible = "gpio-leds";
 			/* pipuck_sd {
 				label = "pipuck_sd";
-				gpios = <&gpio 7 GPIO_ACTIVE_LOW>; // GP_LED1
+				gpios = <&gpio 7 1>; // GP_LED1
 				linux,default-trigger = "mmc0";
 			}; */
 			pipuck_wrx {
