@@ -1,0 +1,3 @@
+# Exclude device tree binaries
+*.dtb
+*.dtbo
