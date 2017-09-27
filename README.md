@@ -50,6 +50,19 @@ The device tree overlays allow certain features to be enabled/disabled/customise
 
 ## Python scripts
 
-First, install `supervisord` by running `sudo apt-get install supervisor`. Then, copy the Python scripts to `/usr/local/bin/`, and use `chmod +x` to make them executable. Finally, copy the `.conf` files to `/etc/supervisor/conf.d/`, and reboot the Raspberry Pi.
+Installation instructions:
 
-Note that the `control_keys` and `power_key` parameters must be disabled (default) for `gpio_shutdown.py` to function, and `control_keys` parameter disabled (default) for `gpio_getty.py` to function.
+- Install `supervisord` (from the `supervisor` package)
+- Copy the Python scripts to `/usr/local/bin/` (ensure they are executable with `chmod +x`)
+- Copy the `.conf` files to `/etc/supervisor/conf.d/`
+- Reboot the Raspberry Pi to have the scripts run on startup
+
+```
+sudo apt-get install supervisor
+chmod +x scripts/*.py
+sudo cp scripts/*.py /usr/local/bin/
+sudo cp scripts/*.conf /etc/supervisor/conf.d/
+sudo reboot
+```
+
+Note that the `control_keys` and `power_key` device tree parameters must be disabled (default) for `gpio_shutdown.py` to function, and `control_keys` parameter disabled (default) for `gpio_getty.py` to function.
