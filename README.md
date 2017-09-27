@@ -24,9 +24,10 @@ dtoverlay=rpi-puck-v2_0:parameter1,parameter2
 The device tree overlays enable the following hardware:
 
 - System LEDs
-- Control switch keys (optional)
-- Control switch power key
-- UART enable (disables Bluetooth)
+- Control switch keys _(optional)_
+- Control switch power key _(optional)_
+- Battery low power-off _(optional)_
+- UART enable (disables Bluetooth) _(optional)_
 - Audio output (v2.0+)
 - I2C devices (v2.0+)
   - I2C switch
@@ -36,7 +37,7 @@ The device tree overlays enable the following hardware:
     - Navigation panel LED
   - ADC
     - Battery level inputs
-    - External ADC channels (optional)
+    - External ADC channels _(optional)_
   - e-puck (I2C switch channel only)
   - Distance sensors (I2C switch channel only)
 
@@ -45,7 +46,10 @@ The device tree overlays enable the following hardware:
 The device tree overlays allow certain features to be enabled/disabled/customised through parameters specified in `config.txt`.
 
 - `control_keys` enables the system DIP switches to trigger Linux keyboard events (keys 256, 257, 258 and 259 for SW1, SW2, SW3 and SW4 respectively).
-- `power_key` sets up SW1 of the system DIP switches as a Linux power key, causing an immediate shutdown to occur when switched on. This overrides the assignment to key 256 if `control_keys` is also enabled.
+- `power_key` sets up SW1 of the system DIP switches as a Linux power key, causing a shutdown to occur when switched on (if held for a short delay). This overrides the assignment to key 256 if `control_keys` is also enabled.
+- `power_key_debounce` sets up the debounce interval for the power key, effectively allowing a delay before shutdown is triggered (default is 2000ms).
+- `batt_low` sets up the BATT_LOW signal as a Linux power key, causing a shutdown to occur when pulled low (if held for a short delay).
+- `batt_low_debounce` sets up the debounce interval for the BATT_LOW signal, effectively allowing a delay before shutdown is triggered (default is 2000ms).
 - `uart` disables the Bluetooth and instead enables the hardware UART output on Pi 3 and Pi Zero W. This is the same as using `dtoverlay=pi3-disable-bt`.
 - `ain2`/`ain3` (v2.0+) enables the external AIN2/AIN3 inputs to the ADC.
 - `ain2_gain`/`ain3_gain` (v2.0+) sets the gain for the AIN2/AIN3 channels of the ADC (see [ads1015 documentation](https://github.com/raspberrypi/linux/blob/master/Documentation/devicetree/bindings/hwmon/ads1015.txt) for values).
