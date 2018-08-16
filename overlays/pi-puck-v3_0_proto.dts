@@ -1,0 +1,267 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	/* I2C devices */
+	fragment@0 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			clock-frequency = <400000>;
+			i2c-switch@70 {
+				compatible = "nxp,pca9548";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0x70>;
+				i2c@0 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0>;
+					pipuck_gpio: gpio@20 {
+						compatible = "microchip,mcp23017";
+						gpio-controller;
+						#gpio-cells = <2>;
+						reg = <0x20>;
+						interrupt-parent = <&gpio>;
+						interrupts = <6 0x8>, <13 0x8>;
+						interrupt-controller;
+						#interrupt-cells = <2>;
+					};
+					pipuck_adc: ads1015@48 {
+						compatible = "ti,ads1015";
+						reg = <0x48>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						pipuck_ain0: channel@4 {
+							reg = <4>;
+							ti,gain = <0>;
+							ti,datarate = <0>;
+						};
+						pipuck_ain1: channel@5 {
+							reg = <5>;
+							ti,gain = <0>;
+							ti,datarate = <0>;
+						};
+					};
+					/* OLED 0x3c */
+					/* USB hub 0x50 */
+				};
+				i2c@1 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <1>;
+					/* e-puck */
+				};
+				i2c@2 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <2>;
+					/* Sensor Board 1 */
+				};
+				i2c@3 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <3>;
+					/* Sensor Board 2 */
+				};
+				i2c@4 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <4>;
+					/* Sensor Board 3 */
+				};
+				i2c@5 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <5>;
+					/* Sensor Board 4 */
+				};
+				i2c@6 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <6>;
+					/* Sensor Board 5 */
+				};
+				i2c@7 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <7>;
+					/* Sensor Board 6 */
+				};
+			};
+		};
+	};
+
+	/* LEDs */
+	fragment@1 {
+		target = <&leds>;
+		__overlay__ {
+			compatible = "gpio-leds";
+			pipuck_sd {
+				label = "pipuck_sd";
+				gpios = <&pipuck_gpio 0 1>; // LED5
+				linux,default-trigger = "mmc0";
+			};
+			pipuck_wrx {
+				label = "pipuck_wrx";
+				gpios = <&pipuck_gpio 1 1>; // LED6
+				linux,default-trigger = "phy0rx";
+			};
+			pipuck_wtx {
+				label = "pipuck_wtx";
+				gpios = <&pipuck_gpio 2 1>; // LED7
+				linux,default-trigger = "phy0tx";
+			};
+			pipuck_boot {
+				label = "pipuck_boot";
+				gpios = <&pipuck_gpio 3 1>; // LED8
+				linux,default-trigger = "heartbeat";
+			};
+			pipuck_user {
+				label = "pipuck_user";
+				gpios = <&pipuck_gpio 15 1>; // LED9
+				linux,default-trigger = "none";
+			};
+		};
+	};
+
+	/* DIP switch keys */
+	fragment@2 {
+		target-path = "/soc";
+		__dormant__ {
+			control-switches {
+				compatible = "gpio-keys";
+				pipuck_switch1 {
+					label = "pipuck_switch1";
+					gpios = <&pipuck_gpio 4 1>; // SW1
+					linux,code = <256>;
+				};
+				pipuck_switch2 {
+					label = "pipuck_switch2";
+					gpios = <&pipuck_gpio 5 1>; // SW2
+					linux,code = <257>;
+				};
+				pipuck_switch3 {
+					label = "pipuck_switch3";
+					gpios = <&pipuck_gpio 6 1>; // SW3
+					linux,code = <258>;
+				};
+				pipuck_switch4 {
+					label = "pipuck_switch4";
+					gpios = <&pipuck_gpio 7 1>; // SW4
+					linux,code = <259>;
+				};
+			};
+		};
+	};
+
+	/* Shutdown button key */
+	fragment@3 {
+		target-path = "/soc";
+		__dormant__ {
+			control-switches {
+				compatible = "gpio-keys";
+				pipuck_power_key: pipuck_shutdown {
+					label = "shutdown";
+					linux,code = <116>; // KEY_POWER
+					gpios = <&gpio 5 1>;
+					debounce-interval = <1000>;
+				};
+
+			};
+		};
+	};
+
+	/* Audio output */
+	fragment@4 {
+		target = <&gpio>;
+		__overlay__ {
+			pwm_pins: pwm_pins {
+				brcm,pins = <12>;
+				brcm,function = <4>; // Alt0
+			};
+		};
+	};
+	fragment@5 {
+		target = <&pwm>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pwm_pins>;
+			status = "okay";
+		};
+	};
+
+	/* Disable Bluetooth to free up UART */
+	fragment@6 {
+		target = <&uart1>;
+		__dormant__ {
+			status = "disabled";
+		};
+	};
+	fragment@7 {
+		target = <&uart0>;
+		__dormant__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart0_pins>;
+			status = "okay";
+		};
+	};
+	fragment@8 {
+		target = <&uart0_pins>;
+		__dormant__ {
+			brcm,pins;
+			brcm,function;
+			brcm,pull;
+		};
+	};
+	fragment@9 {
+		target-path = "/aliases";
+		__dormant__ {
+			serial0 = "/soc/serial@7e201000";
+			serial1 = "/soc/serial@7e215040";
+		};
+	};
+
+	/* Enable external ADC channels */
+	fragment@10 {
+		target = <&pipuck_adc>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pipuck_ain2: channel@6 {
+				reg = <6>;
+				ti,gain = <2>;
+				ti,datarate = <4>;
+			};
+		};
+	};
+	fragment@11 {
+		target = <&pipuck_adc>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pipuck_ain3: channel@7 {
+				reg = <7>;
+				ti,gain = <2>;
+				ti,datarate = <4>;
+			};
+		};
+	};
+
+	__overrides__ {
+		dip_keys = <0>,"+2";
+		power_key = <0>,"+3";
+		power_key_debounce = <&pipuck_power_key>,"debounce-interval:0";
+		uart = <0>,"+6+7+8+9";
+		ain2 = <0>,"+10";
+		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
+		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
+		ain3 = <0>,"+11";
+		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
+		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
+	};
+};
