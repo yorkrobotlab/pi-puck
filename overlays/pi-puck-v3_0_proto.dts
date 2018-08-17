@@ -47,8 +47,18 @@
 							ti,datarate = <0>;
 						};
 					};
+					usb2512b@2c {
+						compatible = "microchip,usb2512b";
+						reg = <0x2c>;
+						vendor-id = /bits/ 16 <0x0000>;
+						product-id = /bits/ 16 <0x0000>;
+						string-support;
+						manufacturer = "YRL";
+						product = "Pi-puck";
+						serial = "1";
+					};
 					/* OLED 0x3c */
-					/* USB hub 0x50 */
+					/* USB hub EEPROM 0x50-0x57*/
 				};
 				i2c@1 {
 					#address-cells = <1>;
