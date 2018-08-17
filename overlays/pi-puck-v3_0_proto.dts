@@ -184,13 +184,17 @@
 				brcm,pins = <12>;
 				brcm,function = <4>; // Alt0
 			};
+			audio_enable: audio_enable {
+				brcm,pins = <22>;
+				brcm,function = <1>; // GPIO out
+			};
 		};
 	};
 	fragment@5 {
 		target = <&pwm>;
 		__overlay__ {
 			pinctrl-names = "default";
-			pinctrl-0 = <&pwm_pins>;
+			pinctrl-0 = <&pwm_pins &audio_enable>;
 			status = "okay";
 		};
 	};
