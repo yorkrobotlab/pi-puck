@@ -173,13 +173,28 @@
 					gpios = <&gpio 5 1>;
 					debounce-interval = <1000>;
 				};
+			};
+		};
+	};
 
+	/* Batt_low shutdown key */
+	fragment@4 {
+		target-path = "/soc";
+		__overlay__ {
+			pipuck_batt_low_key {
+				compatible = "gpio-keys";
+				pipuck_batt_low: pipuck_batt_low {
+					label = "batt_low";
+					linux,code = <116>; // KEY_POWER
+					gpios = <&gpio 7 1>;
+					debounce-interval = <2000>;
+				};
 			};
 		};
 	};
 
 	/* Audio output */
-	fragment@4 {
+	fragment@5 {
 		target = <&gpio>;
 		__overlay__ {
 			pwm_pins: pwm_pins {
@@ -192,7 +207,7 @@
 			};
 		};
 	};
-	fragment@5 {
+	fragment@6 {
 		target = <&pwm>;
 		__overlay__ {
 			pinctrl-names = "default";
@@ -202,13 +217,13 @@
 	};
 
 	/* Disable Bluetooth to free up UART */
-	fragment@6 {
+	fragment@7 {
 		target = <&uart1>;
 		__overlay__ {
 			status = "disabled";
 		};
 	};
-	fragment@7 {
+	fragment@8 {
 		target = <&uart0>;
 		__overlay__ {
 			pinctrl-names = "default";
@@ -216,7 +231,7 @@
 			status = "okay";
 		};
 	};
-	fragment@8 {
+	fragment@9 {
 		target = <&uart0_pins>;
 		__overlay__ {
 			brcm,pins;
@@ -224,7 +239,7 @@
 			brcm,pull;
 		};
 	};
-	fragment@9 {
+	fragment@10 {
 		target-path = "/aliases";
 		__overlay__ {
 			serial0 = "/soc/serial@7e201000";
@@ -233,7 +248,7 @@
 	};
 
 	/* Enable external ADC channels */
-	fragment@10 {
+	fragment@11 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -245,7 +260,7 @@
 			};
 		};
 	};
-	fragment@11 {
+	fragment@12 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -262,11 +277,13 @@
 		dip_keys = <0>,"+2";
 		power_key_disable = <0>,"-3";
 		power_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
-		uart_disable = <0>,"-6-7-8-9";
-		ain2 = <0>,"+10";
+		batt_low_disable = <0>,"-4";
+		batt_low_debounce = <&pipuck_batt_low>,"debounce-interval:0";
+		uart_disable = <0>,"-7-8-9-10";
+		ain2 = <0>,"+11";
 		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
 		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
-		ain3 = <0>,"+11";
+		ain3 = <0>,"+12";
 		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
 		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
 	};
