@@ -135,7 +135,7 @@
 	fragment@2 {
 		target-path = "/soc";
 		__dormant__ {
-			control-switches {
+			pipuck_dip_switch_keys {
 				compatible = "gpio-keys";
 				pipuck_switch1 {
 					label = "pipuck_switch1";
@@ -164,10 +164,10 @@
 	/* Shutdown button key */
 	fragment@3 {
 		target-path = "/soc";
-		__dormant__ {
-			control-switches {
+		__overlay__ {
+			pipuck_power_key {
 				compatible = "gpio-keys";
-				pipuck_power_key: pipuck_shutdown {
+				pipuck_shutdown: pipuck_shutdown {
 					label = "shutdown";
 					linux,code = <116>; // KEY_POWER
 					gpios = <&gpio 5 1>;
@@ -186,7 +186,7 @@
 				brcm,pins = <12>;
 				brcm,function = <4>; // Alt0
 			};
-			audio_enable: audio_enable {
+			pipuck_audio_enable_pins: pipuck_audio_enable_pins {
 				brcm,pins = <22>;
 				brcm,function = <1>; // GPIO out
 			};
@@ -196,7 +196,7 @@
 		target = <&pwm>;
 		__overlay__ {
 			pinctrl-names = "default";
-			pinctrl-0 = <&pwm_pins &audio_enable>;
+			pinctrl-0 = <&pwm_pins &pipuck_audio_enable_pins>;
 			status = "okay";
 		};
 	};
@@ -204,13 +204,13 @@
 	/* Disable Bluetooth to free up UART */
 	fragment@6 {
 		target = <&uart1>;
-		__dormant__ {
+		__overlay__ {
 			status = "disabled";
 		};
 	};
 	fragment@7 {
 		target = <&uart0>;
-		__dormant__ {
+		__overlay__ {
 			pinctrl-names = "default";
 			pinctrl-0 = <&uart0_pins>;
 			status = "okay";
@@ -218,7 +218,7 @@
 	};
 	fragment@8 {
 		target = <&uart0_pins>;
-		__dormant__ {
+		__overlay__ {
 			brcm,pins;
 			brcm,function;
 			brcm,pull;
@@ -226,7 +226,7 @@
 	};
 	fragment@9 {
 		target-path = "/aliases";
-		__dormant__ {
+		__overlay__ {
 			serial0 = "/soc/serial@7e201000";
 			serial1 = "/soc/serial@7e215040";
 		};
@@ -260,9 +260,9 @@
 
 	__overrides__ {
 		dip_keys = <0>,"+2";
-		power_key = <0>,"+3";
-		power_key_debounce = <&pipuck_power_key>,"debounce-interval:0";
-		uart = <0>,"+6+7+8+9";
+		power_key_disable = <0>,"-3";
+		power_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
+		uart_disable = <0>,"-6-7-8-9";
 		ain2 = <0>,"+10";
 		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
 		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
