@@ -98,33 +98,35 @@
 
 	/* LEDs */
 	fragment@1 {
-		target = <&leds>;
+		target-path = "/soc";
 		__overlay__ {
-			compatible = "gpio-leds";
-			pipuck_sd {
-				label = "pipuck_sd";
-				gpios = <&pipuck_gpio 0 1>; // LED5
-				linux,default-trigger = "mmc0";
-			};
-			pipuck_wrx {
-				label = "pipuck_wrx";
-				gpios = <&pipuck_gpio 1 1>; // LED6
-				linux,default-trigger = "phy0rx";
-			};
-			pipuck_wtx {
-				label = "pipuck_wtx";
-				gpios = <&pipuck_gpio 2 1>; // LED7
-				linux,default-trigger = "phy0tx";
-			};
-			pipuck_boot {
-				label = "pipuck_boot";
-				gpios = <&pipuck_gpio 3 1>; // LED8
-				linux,default-trigger = "heartbeat";
-			};
-			pipuck_user {
-				label = "pipuck_user";
-				gpios = <&pipuck_gpio 15 1>; // LED9
-				linux,default-trigger = "none";
+			pipuck_leds {
+				compatible = "gpio-leds";
+				pipuck_sd {
+					label = "pipuck_sd";
+					gpios = <&pipuck_gpio 0 1>; // LED5
+					linux,default-trigger = "mmc0";
+				};
+				pipuck_wrx {
+					label = "pipuck_wrx";
+					gpios = <&pipuck_gpio 1 1>; // LED6
+					linux,default-trigger = "phy0rx";
+				};
+				pipuck_wtx {
+					label = "pipuck_wtx";
+					gpios = <&pipuck_gpio 2 1>; // LED7
+					linux,default-trigger = "phy0tx";
+				};
+				pipuck_boot {
+					label = "pipuck_boot";
+					gpios = <&pipuck_gpio 3 1>; // LED8
+					linux,default-trigger = "heartbeat";
+				};
+				pipuck_user {
+					label = "pipuck_user";
+					gpios = <&pipuck_gpio 15 1>; // LED9
+					linux,default-trigger = "none";
+				};
 			};
 		};
 	};
