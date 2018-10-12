@@ -296,8 +296,41 @@
 		};
 	};
 
-	/* Enable external ADC channels */
+	/* Microphone audio input (based on https://www.raspberrypi.org/forums/viewtopic.php?t=173640) */
 	fragment@8 {
+		target = <&i2s>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	fragment@9 {
+		target-path = "/";
+		__overlay__ {
+			card_codec: card-codec {
+				#sound-dai-cells = <0>;
+				compatible = "invensense,ics43432";
+				status = "okay";
+			};
+		};
+	};
+	fragment@10 {
+		target = <&sound>;
+		slave_overlay: __overlay__ {
+				compatible = "simple-audio-card";
+				simple-audio-card,format = "i2s";
+				simple-audio-card,name = "pi-puck_mic";
+				status = "okay";
+				simple-audio-card,cpu {
+					sound-dai = <&i2s>;
+				};
+				dailink0_slave: simple-audio-card,codec {
+					sound-dai = <&card_codec>;
+				};
+		};
+	};
+
+	/* Enable external ADC channels */
+	fragment@11 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -309,7 +342,7 @@
 			};
 		};
 	};
-	fragment@9 {
+	fragment@12 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -327,10 +360,10 @@
 		nav_keys = <0>,"+4";
 		shutdown_key_disable = <0>,"-5";
 		shutdown_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
-		ain2 = <0>,"+8";
+		ain2 = <0>,"+11";
 		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
 		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
-		ain3 = <0>,"+9";
+		ain3 = <0>,"+12";
 		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
 		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
 	};
