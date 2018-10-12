@@ -1,0 +1,89 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	/* Sensor Board 1 */
+	fragment@0 {
+		target = <&i2c_pipuck_0>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 2 */
+	fragment@1 {
+		target = <&i2c_pipuck_1>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 3 */
+	fragment@2 {
+		target = <&i2c_pipuck_2>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 4 */
+	fragment@3 {
+		target = <&i2c_pipuck_3>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 5 */
+	fragment@4 {
+		target = <&i2c_pipuck_4>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 6 */
+	fragment@5 {
+		target = <&i2c_pipuck_5>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 7 */
+	fragment@6 {
+		target = <&i2c_pipuck_6>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	/* Sensor Board 8 */
+	fragment@7 {
+		target = <&i2c_pipuck_7>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+
+	__overrides__ {
+		sensor1 = <0>,"+0";
+		sensor2 = <0>,"+1";
+		sensor3 = <0>,"+2";
+		sensor4 = <0>,"+3";
+		sensor5 = <0>,"+4";
+		sensor6 = <0>,"+5";
+		sensor7 = <0>,"+6";
+		sensor8 = <0>,"+7";
+	};
+};

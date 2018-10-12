@@ -11,24 +11,24 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
-			i2c-switch@70 {
+			i2c_pipuck: i2c-switch@70 {
 				compatible = "nxp,pca9548";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0x70>;
-				i2c@0 {
+				i2c_pipuck_0: i2c@0 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <0>;
 					/* Sensor Board 1 */
 				};
-				i2c@1 {
+				i2c_pipuck_1: i2c@1 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <1>;
 					/* Sensor Board 2 */
 				};
-				i2c@2 {
+				i2c_pipuck_2: i2c@2 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <2>;
@@ -65,27 +65,27 @@
 						#size-cells = <0>;
 						reg = <0x45>;
 						led@0 {
-							label = "pipuck_g1_r";
+							label = "pipuck_r1";
 							reg = <0x0>;
 						};
 						led@1 {
-							label = "pipuck_g1_g";
+							label = "pipuck_g1";
 							reg = <0x1>;
 						};
 						led@2 {
-							label = "pipuck_g1_b";
+							label = "pipuck_b1";
 							reg = <0x2>;
 						};
 						led@3 {
-							label = "pipuck_g2_r";
+							label = "pipuck_r2";
 							reg = <0x3>;
 						};
 						led@4 {
-							label = "pipuck_g2_g";
+							label = "pipuck_g2";
 							reg = <0x4>;
 						};
 						led@5 {
-							label = "pipuck_g2_b";
+							label = "pipuck_b2";
 							reg = <0x5>;
 						};
 						led@6 {
@@ -93,35 +93,41 @@
 							reg = <0x6>;
 						};
 					};
-					/* OLED 0x3c */
+					ssd1306: oled@3c {
+						compatible = "solomon,ssd1306fb-i2c";
+						reg = <0x3c>;
+						solomon,height = <16>;
+						solomon,width = <96>;
+						solomon,page-offset = <0>;
+					};
 					/* Sensor Board 3 */
 				};
-				i2c@3 {
+				i2c_pipuck_3: i2c@3 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <3>;
 					/* Sensor Board 4 */
 				};
-				i2c@4 {
+				i2c_pipuck_4: i2c@4 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <4>;
 					/* Sensor Board 5 */
 				};
-				i2c@5 {
+				i2c_pipuck_5: i2c@5 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <5>;
 					/* Sensor Board 6 */
 				};
-				i2c@6 {
+				i2c_pipuck_6: i2c@6 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <6>;
 					/* e-puck */
 					/* Sensor Board 7 */
 				};
-				i2c@7 {
+				i2c_pipuck_7: i2c@7 {
 					#address-cells = <1>;
 					#size-cells = <0>;
 					reg = <7>;
@@ -131,17 +137,27 @@
 		};
 	};
 
-	/* LEDs */
+	/* SD LED (on Raspberry Pi pin) */
 	fragment@1 {
 		target-path = "/soc";
 		__overlay__ {
-			pipuck_leds {
+			pipuck_sd_led {
 				compatible = "gpio-leds";
 				pipuck_sd {
 					label = "pipuck_sd";
 					gpios = <&gpio 26 1>;
 					linux,default-trigger = "mmc0";
 				};
+			};
+		};
+	};
+
+	/* Status LEDs (on I2C) */
+	fragment@2 {
+		target-path = "/soc";
+		__overlay__ {
+			pipuck_status_leds {
+				compatible = "gpio-leds";
 				pipuck_wrx {
 					label = "pipuck_wrx";
 					gpios = <&pipuck_gpio 1 1>;
@@ -167,28 +183,28 @@
 	};
 
 	/* DIP switch keys */
-	fragment@2 {
+	fragment@3 {
 		target-path = "/soc";
 		__dormant__ {
 			pipuck_dip_switch_keys {
 				compatible = "gpio-keys";
-				pipuck_switch1 {
-					label = "pipuck_switch1";
+				pipuck_sw1 {
+					label = "pipuck_sw1";
 					gpios = <&pipuck_gpio 4 1>; // SW1
 					linux,code = <256>;
 				};
-				pipuck_switch2 {
-					label = "pipuck_switch2";
+				pipuck_sw2 {
+					label = "pipuck_sw2";
 					gpios = <&pipuck_gpio 5 1>; // SW2
 					linux,code = <257>;
 				};
-				pipuck_switch3 {
-					label = "pipuck_switch3";
+				pipuck_sw3 {
+					label = "pipuck_sw3";
 					gpios = <&pipuck_gpio 6 1>; // SW3
 					linux,code = <258>;
 				};
-				pipuck_switch4 {
-					label = "pipuck_switch4";
+				pipuck_sw4 {
+					label = "pipuck_sw4";
 					gpios = <&pipuck_gpio 7 1>; // SW4
 					linux,code = <259>;
 				};
@@ -196,11 +212,56 @@
 		};
 	};
 
+	/* Navigation switch keys */
+	fragment@4 {
+		target-path = "/soc";
+		__dormant__ {
+			pipuck_nav_switch_keys {
+				compatible = "gpio-keys";
+				pipuck_nav_up {
+					label = "pipuck_nav_up";
+					gpios = <&pipuck_gpio 8 1>; // UP
+					linux,code = <103>; // KEY_UP
+				};
+				pipuck_nav_down {
+					label = "pipuck_nav_down";
+					gpios = <&pipuck_gpio 9 1>; // DOWN
+					linux,code = <108>; // KEY_DOWN
+				};
+				pipuck_nav_left {
+					label = "pipuck_nav_left";
+					gpios = <&pipuck_gpio 10 1>; // LEFT
+					linux,code = <105>; // KEY_LEFT
+				};
+				pipuck_nav_right {
+					label = "pipuck_nav_right";
+					gpios = <&pipuck_gpio 11 1>; // RIGHT
+					linux,code = <106>; // KEY_RIGHT
+				};
+				pipuck_nav_centre {
+					label = "pipuck_nav_centre";
+					gpios = <&pipuck_gpio 12 1>; // CENTRE
+					linux,code = <28>; // KEY_ENTER
+				};
+				pipuck_nav_sw1 {
+					label = "pipuck_nav_sw1";
+					gpios = <&pipuck_gpio 13 1>; // SW1
+					linux,code = <30>; // KEY_A
+				};
+				pipuck_nav_sw2 {
+					label = "pipuck_nav_sw2";
+					gpios = <&pipuck_gpio 14 1>; // SW2
+					linux,code = <48>; // KEY_B
+				};
+			};
+		};
+	};
+
 	/* Shutdown button key */
-	fragment@3 {
+	fragment@5 {
 		target-path = "/soc";
 		__overlay__ {
-			pipuck_power_key {
+			pipuck_shutdown_key {
 				compatible = "gpio-keys";
 				pipuck_shutdown: pipuck_shutdown {
 					label = "shutdown";
@@ -212,24 +273,8 @@
 		};
 	};
 
-	/* Batt_low shutdown key */
-	fragment@4 {
-		target-path = "/soc";
-		__overlay__ {
-			pipuck_batt_low_key {
-				compatible = "gpio-keys";
-				pipuck_batt_low: pipuck_batt_low {
-					label = "batt_low";
-					linux,code = <116>; // KEY_POWER
-					gpios = <&gpio 7 1>;
-					debounce-interval = <2000>;
-				};
-			};
-		};
-	};
-
 	/* Audio output */
-	fragment@5 {
+	fragment@6 {
 		target = <&gpio>;
 		__overlay__ {
 			pwm_pins: pwm_pins {
@@ -242,7 +287,7 @@
 			};
 		};
 	};
-	fragment@6 {
+	fragment@7 {
 		target = <&pwm>;
 		__overlay__ {
 			pinctrl-names = "default";
@@ -251,39 +296,8 @@
 		};
 	};
 
-	/* Disable Bluetooth to free up UART */
-	fragment@7 {
-		target = <&uart1>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-	fragment@8 {
-		target = <&uart0>;
-		__overlay__ {
-			pinctrl-names = "default";
-			pinctrl-0 = <&uart0_pins>;
-			status = "okay";
-		};
-	};
-	fragment@9 {
-		target = <&uart0_pins>;
-		__overlay__ {
-			brcm,pins;
-			brcm,function;
-			brcm,pull;
-		};
-	};
-	fragment@10 {
-		target-path = "/aliases";
-		__overlay__ {
-			serial0 = "/soc/serial@7e201000";
-			serial1 = "/soc/serial@7e215040";
-		};
-	};
-
 	/* Enable external ADC channels */
-	fragment@11 {
+	fragment@8 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -295,7 +309,7 @@
 			};
 		};
 	};
-	fragment@12 {
+	fragment@9 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -309,16 +323,14 @@
 	};
 
 	__overrides__ {
-		dip_keys = <0>,"+2";
-		power_key_disable = <0>,"-3";
-		power_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
-		batt_low_disable = <0>,"-4";
-		batt_low_debounce = <&pipuck_batt_low>,"debounce-interval:0";
-		uart_disable = <0>,"-7-8-9-10";
-		ain2 = <0>,"+11";
+		dip_keys = <0>,"+3";
+		nav_keys = <0>,"+4";
+		shutdown_key_disable = <0>,"-5";
+		shutdown_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
+		ain2 = <0>,"+8";
 		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
 		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
-		ain3 = <0>,"+12";
+		ain3 = <0>,"+9";
 		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
 		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
 	};
