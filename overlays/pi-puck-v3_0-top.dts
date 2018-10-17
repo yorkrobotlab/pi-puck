@@ -93,13 +93,6 @@
 							reg = <0x6>;
 						};
 					};
-					ssd1306: oled@3c {
-						compatible = "solomon,ssd1306fb-i2c";
-						reg = <0x3c>;
-						solomon,height = <16>;
-						solomon,width = <96>;
-						solomon,page-offset = <0>;
-					};
 					/* Sensor Board 3 */
 				};
 				i2c_pipuck_3: i2c@3 {
@@ -355,6 +348,25 @@
 		};
 	};
 
+	fragment@13 {
+		target = <&i2c_pipuck_2>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			ssd1306: oled@3c {
+				compatible = "solomon,ssd1306fb-i2c";
+				reg = <0x3c>;
+				solomon,height = <16>;
+				solomon,width = <96>;
+				solomon,page-offset = <0>;
+				solomon,com-lrremap;
+				solomon,com-invdir;
+				solomon,segment-no-remap;
+				solomon,com-offset = <8>;
+			};
+		};
+	};
+
 	__overrides__ {
 		dip_keys = <0>,"+3";
 		nav_keys = <0>,"+4";
@@ -366,5 +378,6 @@
 		ain3 = <0>,"+12";
 		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
 		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
+		oledfb = <0>,"+13";
 	};
 };
