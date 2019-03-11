@@ -1,0 +1,261 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	/* LEDs (on Raspberry Pi pins) */
+	fragment@0 {
+		target-path = "/soc";
+		__overlay__ {
+			pipuck_leds {
+				compatible = "gpio-leds";
+				pipuck_bat_low {
+					label = "pipuck_bat_low";
+					gpios = <&gpio 7 1>;
+					linux,default-trigger = "none";
+					default-state = "off";
+				};
+				pipuck_sd {
+					label = "pipuck_sd";
+					gpios = <&gpio 26 1>;
+					linux,default-trigger = "mmc0";
+				};
+				pipuck_wifi {
+					label = "pipuck_wifi";
+					gpios = <&gpio 25 1>;
+					linux,default-trigger = "phy0rxtx";
+				};
+				pipuck_boot {
+					label = "pipuck_boot";
+					gpios = <&gpio 4 1>;
+					linux,default-trigger = "heartbeat";
+				};
+			};
+		};
+	};
+
+	/* Shutdown button key */
+	fragment@1 {
+		target-path = "/soc";
+		__overlay__ {
+			pipuck_shutdown_key {
+				compatible = "gpio-keys";
+				pipuck_shutdown: pipuck_shutdown {
+					label = "shutdown";
+					linux,code = <116>; // KEY_POWER
+					gpios = <&gpio 6 1>;
+					debounce-interval = <1000>;
+				};
+			};
+		};
+	};
+
+	/* Disable Bluetooth to free up UART */
+	fragment@2 {
+		target = <&uart1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+	fragment@3 {
+		target = <&uart0>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart0_pins>;
+			status = "okay";
+		};
+	};
+	fragment@4 {
+		target = <&uart0_pins>;
+		__overlay__ {
+			brcm,pins;
+			brcm,function;
+			brcm,pull;
+		};
+	};
+	fragment@5 {
+		target-path = "/aliases";
+		__overlay__ {
+			serial0 = "/soc/serial@7e201000";
+			serial1 = "/soc/serial@7e215040";
+		};
+	};
+
+	/* I2C devices */
+	fragment@6 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			i2c_pipuck: i2c-switch@70 {
+				compatible = "nxp,pca9548";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0x70>;
+				i2c_pipuck_0: i2c@0 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0>;
+					/* Pi-puck board devices */
+					/* FT903 I2C slave */
+					/* ADC */
+					pipuck_adc: ads1015@48 {
+						compatible = "ti,ads1015";
+						reg = <0x48>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						pipuck_ain0: channel@4 {
+							reg = <4>;
+							ti,gain = <0>;
+							ti,datarate = <0>;
+						};
+						pipuck_ain1: channel@5 {
+							reg = <5>;
+							ti,gain = <0>;
+							ti,datarate = <0>;
+						};
+					};
+				};
+				i2c_pipuck_1: i2c@1 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <1>;
+					/* e-puck devices */
+				};
+				i2c_pipuck_2: i2c@2 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <2>;
+					/* Sensor Board 1 */
+				};
+				i2c_pipuck_3: i2c@3 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <3>;
+					/* Sensor Board 2 */
+				};
+				i2c_pipuck_4: i2c@4 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <4>;
+					/* Sensor Board 3 */
+				};
+				i2c_pipuck_5: i2c@5 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <5>;
+					/* Sensor Board 4 */
+				};
+				i2c_pipuck_6: i2c@6 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <6>;
+					/* e-puck */
+					/* Sensor Board 5 */
+				};
+				i2c_pipuck_7: i2c@7 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <7>;
+					/* Sensor Board 6 */
+				};
+			};
+		};
+	};
+
+	/* External ADC channels */
+	fragment@7 {
+		target = <&pipuck_adc>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pipuck_ain2: channel@6 {
+				reg = <6>;
+				ti,gain = <2>;
+				ti,datarate = <4>;
+			};
+		};
+	};
+	fragment@8 {
+		target = <&pipuck_adc>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pipuck_ain3: channel@7 {
+				reg = <7>;
+				ti,gain = <2>;
+				ti,datarate = <4>;
+			};
+		};
+	};
+
+	/* Audio output */
+	fragment@9 {
+		target = <&gpio>;
+		__overlay__ {
+			pwm_pins: pwm_pins {
+				brcm,pins = <12>;
+				brcm,function = <4>; // Alt0
+			};
+			pipuck_audio_enable_pins: pipuck_audio_enable_pins {
+				brcm,pins = <22>;
+				brcm,function = <1>; // GPIO out
+			};
+		};
+	};
+	fragment@10 {
+		target = <&pwm>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pwm_pins &pipuck_audio_enable_pins>;
+			status = "okay";
+		};
+	};
+
+	/* Microphone audio input (based on https://www.raspberrypi.org/forums/viewtopic.php?t=173640) */
+	fragment@11 {
+		target = <&i2s>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	fragment@12 {
+		target-path = "/";
+		__overlay__ {
+			card_codec: card-codec {
+				#sound-dai-cells = <0>;
+				compatible = "invensense,ics43432";
+				status = "okay";
+			};
+		};
+	};
+	fragment@13 {
+		target = <&sound>;
+		slave_overlay: __overlay__ {
+				compatible = "simple-audio-card";
+				simple-audio-card,format = "i2s";
+				simple-audio-card,name = "pi-puck_mic";
+				status = "okay";
+				simple-audio-card,cpu {
+					sound-dai = <&i2s>;
+				};
+				dailink0_slave: simple-audio-card,codec {
+					sound-dai = <&card_codec>;
+				};
+		};
+	};
+
+	__overrides__ {
+		shutdown_key_disable = <0>,"-1";
+		shutdown_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
+		uart_disable = <0>,"-2-3-4-5";
+		ain2 = <0>,"+7";
+		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
+		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
+		ain3 = <0>,"+8";
+		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
+		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
+	};
+};
