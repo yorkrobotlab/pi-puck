@@ -372,7 +372,7 @@
 		slave_overlay: __overlay__ {
 				compatible = "simple-audio-card";
 				simple-audio-card,format = "i2s";
-				simple-audio-card,name = "pi-puck_mic";
+				simple-audio-card,name = "pipuck-mic";
 				status = "okay";
 				simple-audio-card,cpu {
 					sound-dai = <&i2s>;
