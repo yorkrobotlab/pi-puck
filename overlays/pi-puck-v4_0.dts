@@ -24,7 +24,7 @@
 				pipuck_wifi {
 					label = "pipuck_wifi";
 					gpios = <&gpio 25 1>;
-					linux,default-trigger = "phy0rxtx";
+					linux,default-trigger = "netdev";
 				};
 				pipuck_boot {
 					label = "pipuck_boot";
