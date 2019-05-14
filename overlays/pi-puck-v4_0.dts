@@ -165,8 +165,119 @@
 		};
 	};
 
-	/* External ADC channels */
+	/* Software I2C */
 	fragment@7 {
+		target = <&i2c_arm>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+		};
+	};
+	fragment@8 {
+		target-path = "/";
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <1>;
+			i2c_gpio: soft_i2c@1 {
+				compatible = "i2c-gpio";
+				sda-gpios = <&gpio 2 0>;
+				scl-gpios = <&gpio 3 0>;
+				i2c-gpio,delay-us = <2>; /* ~100 kHz */
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0x1 0x0>;
+				soft_i2c_pipuck: i2c-switch@70 {
+					compatible = "nxp,pca9548";
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0x70>;
+					soft_i2c_pipuck_0: i2c@0 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <0>;
+						/* Pi-puck board devices */
+						/* FT903 I2C slave */
+						/* ADC */
+						soft_i2c_pipuck_adc: ads1015@48 {
+							compatible = "ti,ads1015";
+							reg = <0x48>;
+							#address-cells = <1>;
+							#size-cells = <0>;
+							soft_i2c_pipuck_ain0: channel@4 {
+								reg = <4>;
+								ti,gain = <0>;
+								ti,datarate = <0>;
+							};
+							soft_i2c_pipuck_ain1: channel@5 {
+								reg = <5>;
+								ti,gain = <0>;
+								ti,datarate = <0>;
+							};
+						};
+					};
+					soft_i2c_pipuck_1: i2c@1 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <1>;
+						/* e-puck devices */
+					};
+					soft_i2c_pipuck_2: i2c@2 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <2>;
+						/* Sensor Board 1 */
+					};
+					soft_i2c_pipuck_3: i2c@3 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <3>;
+						/* Sensor Board 2 */
+					};
+					soft_i2c_pipuck_4: i2c@4 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <4>;
+						/* Sensor Board 3 */
+					};
+					soft_i2c_pipuck_5: i2c@5 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <5>;
+						/* Sensor Board 4 */
+					};
+					soft_i2c_pipuck_6: i2c@6 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <6>;
+						/* e-puck */
+						/* Sensor Board 5 */
+					};
+					soft_i2c_pipuck_7: i2c@7 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <7>;
+						/* Sensor Board 6 */
+					};
+				};
+			};
+		};
+	};
+	fragment@9 {
+		target-path = "/aliases";
+		__dormant__ {
+			i2c_gpio = "/soft_i2c@1";
+		};
+	};
+	fragment@10 {
+		target-path = "/__symbols__";
+		__dormant__ {
+			i2c_gpio = "/soft_i2c@1";
+		};
+	};
+
+	/* External ADC channels */
+	fragment@11 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -178,7 +289,19 @@
 			};
 		};
 	};
-	fragment@8 {
+	fragment@12 {
+		target = <&soft_i2c_pipuck_adc>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			soft_i2c_pipuck_ain2: channel@6 {
+				reg = <6>;
+				ti,gain = <2>;
+				ti,datarate = <4>;
+			};
+		};
+	};
+	fragment@13 {
 		target = <&pipuck_adc>;
 		__dormant__ {
 			#address-cells = <1>;
@@ -190,9 +313,21 @@
 			};
 		};
 	};
+	fragment@14 {
+		target = <&soft_i2c_pipuck_adc>;
+		__dormant__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			soft_i2c_pipuck_ain3: channel@7 {
+				reg = <7>;
+				ti,gain = <2>;
+				ti,datarate = <4>;
+			};
+		};
+	};
 
-	/* Audio output */
-	fragment@9 {
+	/* PWM audio output on GPIO pin */
+	fragment@15 {
 		target = <&gpio>;
 		__overlay__ {
 			pwm_pins: pwm_pins {
@@ -205,7 +340,7 @@
 			};
 		};
 	};
-	fragment@10 {
+	fragment@16 {
 		target = <&pwm>;
 		__overlay__ {
 			pinctrl-names = "default";
@@ -214,14 +349,15 @@
 		};
 	};
 
-	/* Microphone audio input (based on https://www.raspberrypi.org/forums/viewtopic.php?t=173640) */
-	fragment@11 {
+	/* I2S microphone audio input */
+	/* (based on https://www.raspberrypi.org/forums/viewtopic.php?t=173640) */
+	fragment@17 {
 		target = <&i2s>;
 		__overlay__ {
 			status = "okay";
 		};
 	};
-	fragment@12 {
+	fragment@18 {
 		target-path = "/";
 		__overlay__ {
 			card_codec: card-codec {
@@ -231,7 +367,7 @@
 			};
 		};
 	};
-	fragment@13 {
+	fragment@19 {
 		target = <&sound>;
 		slave_overlay: __overlay__ {
 				compatible = "simple-audio-card";
@@ -251,11 +387,19 @@
 		shutdown_key_disable = <0>,"-1";
 		shutdown_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
 		uart_disable = <0>,"-2-3-4-5";
-		ain2 = <0>,"+7";
-		ain2_gain = <&pipuck_ain2>,"ti,gain:0";
-		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0";
-		ain3 = <0>,"+8";
-		ain3_gain = <&pipuck_ain3>,"ti,gain:0";
-		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0";
+		ain2 = <0>,"+11";
+		ain2_soft_i2c = <0>,"+12";
+		ain2_gain = <&pipuck_ain2>,"ti,gain:0",
+		            <&soft_i2c_pipuck_ain2>,"ti,gain:0";
+		ain2_datarate = <&pipuck_ain2>,"ti,datarate:0",
+		                <&soft_i2c_pipuck_ain2>,"ti,datarate:0";
+		ain3 = <0>,"+13";
+		ain3_soft_i2c = <0>,"+14";
+		ain3_gain = <&pipuck_ain3>,"ti,gain:0",
+		            <&soft_i2c_pipuck_ain3>,"ti,gain:0";
+		ain3_datarate = <&pipuck_ain3>,"ti,datarate:0",
+		                <&soft_i2c_pipuck_ain3>,"ti,datarate:0";
+		soft_i2c = <0>,"-6+7+8+9+10";
+		soft_i2c_gpio_delay_us = <&i2c_gpio>,"i2c-gpio,delay-us:0";
 	};
 };
