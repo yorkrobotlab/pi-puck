@@ -54,13 +54,13 @@
 	/* Disable Bluetooth to free up UART */
 	fragment@2 {
 		target = <&uart1>;
-		__overlay__ {
+		__dormant__ {
 			status = "disabled";
 		};
 	};
 	fragment@3 {
 		target = <&uart0>;
-		__overlay__ {
+		__dormant__ {
 			pinctrl-names = "default";
 			pinctrl-0 = <&uart0_pins>;
 			status = "okay";
@@ -68,7 +68,7 @@
 	};
 	fragment@4 {
 		target = <&uart0_pins>;
-		__overlay__ {
+		__dormant__ {
 			brcm,pins;
 			brcm,function;
 			brcm,pull;
@@ -76,7 +76,7 @@
 	};
 	fragment@5 {
 		target-path = "/aliases";
-		__overlay__ {
+		__dormant__ {
 			serial0 = "/soc/serial@7e201000";
 			serial1 = "/soc/serial@7e215040";
 		};
@@ -398,7 +398,7 @@
 	__overrides__ {
 		shutdown_key_disable = <0>,"-1";
 		shutdown_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
-		uart_disable = <0>,"-2-3-4-5";
+		bluetooth_disable = <0>,"+2+3+4+5";
 		ain2 = <0>,"+11";
 		ain2_soft_i2c = <0>,"+12";
 		ain2_gain = <&pipuck_ain2>,"ti,gain:0",
