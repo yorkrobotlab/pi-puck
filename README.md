@@ -23,3 +23,8 @@ The device tree overlay enables all the hardware on the board within Linux, with
 ## Software Utilities
 **[utilities/](utilities/)**
 Linux utilities for configuring the Pi-puck hardware.
+
+
+## Configuration Files
+**[config/](config/)**
+Various Linux configuration files for Pi-puck hardware.
