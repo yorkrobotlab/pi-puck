@@ -14,9 +14,12 @@ Additional software sources can be found in the following repositories:
 
 
 ## Device Tree Overlay, etc.
-
+**[device-tree/](device-tree/)**
 Device tree overlay and associated `config.txt` for booting the Pi-puck.
 
 The device tree overlay enables all the hardware on the board within Linux, with some configurable parameters. The `config.txt` options enable this device tree overlay and set up certain GPIO pins with required default values.
 
-See [device-tree/README.md](device-tree/README.md) for more information.
+
+## Software Utilities
+**[utilities/](utilities/)**
+Linux utilities for configuring the Pi-puck hardware.
