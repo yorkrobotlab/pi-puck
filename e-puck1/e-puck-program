@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+#
+# Script for programming e-puck dsPIC firmware from the Pi-puck extension board.
+#
+# Usage:
+#   e-puck-program 0000 firmware.hex [dump.memory] [dump.packets]
+# where:
+#   '0000' is the e-puck's unique number
+#   'firmware.hex' is the firmware HEX file, output from the dsPIC toolchain
+#   'dump.memory' is an optional file to output a firmware memory dump to (generated from the HEX)
+#   'dump.packets' is an optional file to output a dump of bootloader packets to (generated from the HEX)
+#
+# Prerequisites:
+#   - pigpiod' must be running (as root) before using this script.
+#   - The e-puck must first be programmed with the Pi-puck bootloader.
+#   - R30 and R31 must be removed from the Pi-puck PCB (this will disable e-puck Bluetooth)
+#
+# Explanation for the HEX file to bootloader packet format conversion, from https://www.microchip.com/forums/FindPost/982965
+#   > Be aware that the addresses the hex file are x2 the pic address.
+#   > The PIC has 24 bit instructions but they are addressed as if they are 16 bit.
+#   > The hex file has the 24 bits laid out into 32bits with the top 8 bits set as zero. The hex file address is double to allow for this.
+#
+
+import sys
+import time
+import pigpio
+from intelhex import IntelHex
+
+RESET=24
+RX=27
+TX=17
+BAUD=38400
+
+BOOTLOADER_ADDR=0x17f00*2
+BOOTLOADER_SIZE=120
+
+
+# Dump program memory to file
+def write_memory_file(filename):
+	with open(filename, 'w') as file:
+		file.write('Base address: 0 (length: {} bytes)\n'.format(program_size))
+		for addr in range(0, program_size, 16):
+			data = ih.tobinarray(start=addr, size=16)
+			for x in data:
+				file.write('{:02X} '.format(x))
+			file.write('\n')
+		file.write('Base address: {} (length: {} bytes)\n'.format(BOOTLOADER_ADDR, BOOTLOADER_SIZE))
+		for addr in range(0, BOOTLOADER_SIZE, 16):
+			data = bootloader_data[addr:addr+16]
+			for x in data:
+				file.write('{:02X} '.format(x))
+			file.write('\n')
+
+# Dump bootloader packets to file (excluding checksums)
+def write_packets_file(filename):
+	with open(filename, 'w') as file:
+		for packet in packets:
+			data = ih.tobinarray(start=addr, size=16)
+			for x in packet[0:100]:
+				file.write('{:02X} '.format(x))
+			file.write('\n')
+
+def send_bytes(pi, b):
+	pi.wave_clear()
+	pi.wave_add_serial(TX, BAUD, b)
+	wid = pi.wave_create()
+	pi.wave_send_once(wid)
+
+def recv_bytes(pi):
+	(count, data) = pi.bb_serial_read(RX)
+	return (count, data)
+
+def recv_bytes_blocking(pi):
+	count = 0
+	while count == 0:
+		(count, data) = recv_bytes(pi)
+	return (count, data)
+
+print("Reading HEX file...")
+
+# First argument should be e-puck ID
+epuck_id = int(sys.argv[1])
+
+# Load program data from HEX file
+ih = IntelHex(sys.argv[2])
+
+# Find size of main program (end of final segment within first 256K)
+program_size = 0
+for segment in ih.segments():
+	if segment[1] < 0x40000:
+		program_size = segment[1]
+
+# Create data for bootloader packet
+# (data taken from Perl/C++ uploaders)
+bootloader_data = [0xff] * BOOTLOADER_SIZE
+bootloader_data[108] = epuck_id & 0xff
+bootloader_data[109] = (epuck_id >> 8) & 0xff
+bootloader_data[110] = 0x00
+bootloader_data[111] = 0x00
+bootloader_data[112] = ih[0]
+bootloader_data[113] = ih[1]
+bootloader_data[114] = 0x04
+bootloader_data[115] = 0x00
+bootloader_data[116] = ih[4]
+bootloader_data[117] = 0x00
+bootloader_data[118] = 0x00
+bootloader_data[119] = 0x00
+
+# Set the bootloader return address in main program
+# ('program_address' taken from Perl/C++ uploaders)
+program_address = (0x40, 0x7f, 0x01)
+ih[0] = program_address[0]
+ih[1] = program_address[1]
+ih[2] = 0x04
+ih[3] = 0x00
+ih[4] = program_address[2]
+ih[5] = 0x00
+ih[6] = 0x00
+ih[7] = 0x00
+
+print("Creating packets for bootloader...")
+
+packets = []
+
+for addr in range(0, program_size, 128):
+	data = ih.tobinarray(start=addr, size=128)
+	write_addr = int(addr / 2)
+	packet = []
+	packet.append(write_addr & 0xff)
+	packet.append((write_addr >> 8) & 0xff)
+	packet.append((write_addr >> 16) & 0xff)
+	packet.append(0x60)
+	for i in range(0, len(data), 4):
+		packet.extend(data[i:i+3])
+	packet.extend([0xff] * (100 - len(packet)))
+	checksum = 0
+	for x in packet:
+		checksum += x
+	checksum &= 0xff
+	if checksum == 0:
+		packet.append(0)
+	else:
+		packet.append(256 - checksum)
+	packets.append(packet)
+
+for addr in range(0, BOOTLOADER_SIZE, 128):
+	write_addr = int(BOOTLOADER_ADDR / 2)
+	packet = []
+	packet.append(write_addr & 0xff)
+	packet.append((write_addr >> 8) & 0xff)
+	packet.append((write_addr >> 16) & 0xff)
+	packet.append(0x60)
+	for i in range(0, len(bootloader_data), 4):
+		packet.extend(bootloader_data[i:i+3])
+	packet.extend([0xff] * (100 - len(packet)))
+	checksum = 0
+	for x in packet:
+		checksum += x
+	checksum &= 0xff
+	if checksum == 0:
+		packet.append(0)
+	else:
+		packet.append(256 - checksum)
+	packets.append(packet)
+
+# Output files if specified
+if len(sys.argv) > 3:
+	write_memory_file(sys.argv[3])
+if len(sys.argv) > 4:
+	write_packets_file(sys.argv[4])
+
+print("Ready to send data")
+
+try:
+	pi = pigpio.pi()
+	pi.set_mode(RX, pigpio.INPUT)
+	pi.set_mode(TX, pigpio.OUTPUT)
+	pi.set_mode(RESET, pigpio.OUTPUT)
+	pi.bb_serial_read_open(RX, BAUD, 8)
+
+	# Hold e-puck in reset
+	print("Resetting e-puck...")
+	pi.write(RESET, 0)
+
+	# Flush UART send/receive
+	time.sleep(0.1)
+	pi.wave_clear()
+	recv_bytes(pi)
+	time.sleep(0.1)
+
+	# print("Reset e-puck now!")
+
+	# Release e-puck reset
+	pi.write(RESET, 1)
+	
+	timeout = 50
+	ready = False
+	while not ready and timeout > 0:
+		time.sleep(0.1)
+		print('.', end='')
+		sys.stdout.flush()
+		send_bytes(pi, [0xc1])
+		time.sleep(0.1)
+		(count, data) = recv_bytes(pi)
+		if count > 0:
+			# print()
+			# print(" ", data)
+			try:
+				if data.decode('ASCII') == 'qK':
+					ready = True
+			except UnicodeDecodeError:
+				pass
+		timeout -= 1
+
+	if ready:
+		print()
+		print("ACK received. Sending data...")
+	else:
+		raise Exception("Timed out")
+
+	sent = 1
+	total = len(packets)
+	for packet in packets:
+		print("Sending {} of {} packets... ".format(sent, total), end='')
+		sys.stdout.flush()
+		send_bytes(pi, packet)
+		sent += 1
+		(count, data) = recv_bytes_blocking(pi)
+		try:
+			if data.decode('ASCII') == 'K':
+				print("OK")
+				pass
+			elif data.decode('ASCII') == 'N':
+				raise Exception("Checksum error from bootloader")
+			else:
+				raise Exception("Bad response from bootloader: ", data)
+		except UnicodeDecodeError:
+			raise Exception("Bad response from bootloader: ", data)
+
+	print("Sending termination sequence...")
+	send_bytes(pi, [0x95, 0x00, 0x00, 0xff])
+
+	print("Done.")
+
+	pi.bb_serial_read_close(RX)
+	pi.stop()
+
+except Exception as e:
+	print(e)
+	pi.bb_serial_read_close(RX)
+	pi.stop()
+	sys.exit(1)

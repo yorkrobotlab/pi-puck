@@ -33,3 +33,8 @@ Various Linux configuration files for Pi-puck hardware.
 ## Software Examples
 **[examples/](examples/)**
 Linux examples for using the Pi-puck.
+
+
+## e-puck1 Code
+**[e-puck1/](e-puck1/)**
+Example code, bootloader and programming script for the e-puck1.
