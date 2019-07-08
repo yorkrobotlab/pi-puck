@@ -1,76 +1,22 @@
-# Scripts and device tree overlays for the Pi-puck
+# Supporting Files for the Pi-puck Extension Board
 
-## Device tree overlays
+The Pi-puck is a [Raspberry Pi](https://www.raspberrypi.org) extension board for the [e-puck](http://www.gctronic.com/doc/index.php?title=E-Puck) and [e-puck2](http://www.gctronic.com/doc/index.php?title=e-puck2) robot platforms, designed and built as a collaboration between the [University of York](https://www.york.ac.uk/robot-lab/) and [GCtronic](http://www.gctronic.com).
 
-The Device Tree Source (DTS) file for the target board revision must first be compiled into Device Tree Blob (DTB) overlays as follows:
+For more information about the Pi-puck, see:
+- GCtronic wiki page - http://www.gctronic.com/doc/index.php?title=Pi-puck
+- Pi-puck on the YRL website - https://www.york.ac.uk/robot-lab/pi-puck/
+- IROS 2017 paper - https://eprints.whiterose.ac.uk/120310/
 
-```
-dtc -@ -I dts -O dtb -W no-unit_address_vs_reg -o pi-puck-v1_0.dtbo overlays/pi-puck-v1_0.dts
-dtc -@ -I dts -O dtb -W no-unit_address_vs_reg -o pi-puck-v2_0.dtbo overlays/pi-puck-v2_0.dts
-```
-
-The resulting `.dtbo` files should then be copied to `/boot/overlays/` on the Raspberry Pi.
-
-```
-sudo cp *.dtbo /boot/overlays/
-```
-
-To enable an overlay, add the following line to `/boot/config.txt`, using the correct board revision number, and replacing parameters as detailed below:
-
-```
-dtoverlay=rpi-puck-v2_0:parameter1,parameter2
-```
-
-The device tree overlays enable the following hardware:
-
-- System LEDs
-- Control switch keys _(optional)_
-- Control switch power key _(optional)_
-- Battery low power-off _(optional)_
-- UART enable (disables Bluetooth) _(optional)_
-- Audio output (v2.0+)
-- I2C devices (v2.0+)
-  - I2C switch
-  - User GPIO expander
-    - User LEDs
-  - Navigation GPIO expander
-    - Navigation panel LED
-  - ADC
-    - Battery level inputs
-    - External ADC channels _(optional)_
-  - e-puck (I2C switch channel only)
-  - Distance sensors (I2C switch channel only)
-
-### Overlay parameters
-
-The device tree overlays allow certain features to be enabled/disabled/customised through parameters specified in `config.txt`.
-
-- `control_keys` enables the system DIP switches to trigger Linux keyboard events (keys 256, 257, 258 and 259 for SW1, SW2, SW3 and SW4 respectively).
-- `power_key` sets up SW1 of the system DIP switches as a Linux power key, causing a shutdown to occur when switched on (if held for a short delay). This overrides the assignment to key 256 if `control_keys` is also enabled.
-- `power_key_debounce` sets up the debounce interval for the power key, effectively allowing a delay before shutdown is triggered (default is 2000ms).
-- `batt_low` sets up the BATT_LOW signal as a Linux power key, causing a shutdown to occur when pulled low (if held for a short delay).
-- `batt_low_debounce` sets up the debounce interval for the BATT_LOW signal, effectively allowing a delay before shutdown is triggered (default is 2000ms).
-- `uart` disables the Bluetooth and instead enables the hardware UART output on Pi 3 and Pi Zero W. This is the same as using `dtoverlay=pi3-disable-bt`.
-- `ain2`/`ain3` (v2.0+) enables the external AIN2/AIN3 inputs to the ADC.
-- `ain2_gain`/`ain3_gain` (v2.0+) sets the gain for the AIN2/AIN3 channels of the ADC (see [ads1015 documentation](https://github.com/raspberrypi/linux/blob/master/Documentation/devicetree/bindings/hwmon/ads1015.txt) for values).
-- `ain2_datarate`/`ain3_datarate` (v2.0+) sets the data rate for the AIN2/AIN3 channels of the ADC (see [ads1015 documentation](https://github.com/raspberrypi/linux/blob/master/Documentation/devicetree/bindings/hwmon/ads1015.txt) for values).
+Additional software sources can be found in the following repositories:
+- GCtronic Pi-puck repository - https://github.com/gctronic/Pi-puck
+- Pi-puck Debian packages - https://github.com/yorkrobotlab/pi-puck-packages
+- Pi-puck Raspbian distribution - https://github.com/yorkrobotlab/pi-gen
 
 
-## Python scripts
+## Device Tree Overlay, etc.
 
-Installation instructions:
+Device tree overlay and associated `config.txt` for booting the Pi-puck.
 
-- Install `supervisord` (from the `supervisor` package)
-- Copy the Python scripts to `/usr/local/bin/` (ensure they are executable with `chmod +x`)
-- Copy the `.conf` files to `/etc/supervisor/conf.d/`
-- Reboot the Raspberry Pi to have the scripts run on startup
+The device tree overlay enables all the hardware on the board within Linux, with some configurable parameters. The `config.txt` options enable this device tree overlay and set up certain GPIO pins with required default values.
 
-```
-sudo apt-get install supervisor
-chmod +x scripts/*.py
-sudo cp scripts/*.py /usr/local/bin/
-sudo cp scripts/*.conf /etc/supervisor/conf.d/
-sudo reboot
-```
-
-Note that the `control_keys` and `power_key` device tree parameters must be disabled (default) for `gpio_shutdown.py` to function, and `control_keys` parameter disabled (default) for `gpio_getty.py` to function.
+See [device-tree/README.md](device-tree/README.md) for more information.

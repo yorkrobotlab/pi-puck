@@ -1,0 +1,33 @@
+# Board-specific config for Pi-puck
+# Add the following at the end of config.txt to enable:
+#
+#  [all]
+#  include pi-puck-config.txt
+#
+
+# Enable USB UART (optional)
+enable_uart=1
+
+# Enable Pi-puck device tree overlay
+dtoverlay=pi-puck
+
+# Optional device tree overlay parameters - uncomment and edit as necessary
+#dtparam=shutdown_key_disable
+#dtparam=shutdown_key_debounce=1000
+#dtparam=bluetooth_disable
+#dtparam=ain2
+#dtparam=ain2_soft_i2c
+#dtparam=ain2_gain=2
+#dtparam=ain2_datarate=4
+#dtparam=ain3
+#dtparam=ain3_soft_i2c
+#dtparam=ain3_gain=2
+#dtparam=ain3_datarate=4
+#dtparam=soft_i2c
+#dtparam=soft_i2c_gpio_delay_us=2
+
+# Set GPIO 5,6 (pins 29,31) to input,pull-up to keep board powered on
+gpio=5,6=ip,pu
+
+# Set GPIO 16,24 (pins 36,18) to output,high to release FT903 and e-puck resets
+gpio=16,24=op,dh
