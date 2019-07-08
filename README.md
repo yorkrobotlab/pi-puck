@@ -28,3 +28,8 @@ Linux utilities for configuring the Pi-puck hardware.
 ## Configuration Files
 **[config/](config/)**
 Various Linux configuration files for Pi-puck hardware.
+
+
+## Software Examples
+**[examples/](examples/)**
+Linux examples for using the Pi-puck.
