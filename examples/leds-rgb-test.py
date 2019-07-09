@@ -4,7 +4,7 @@ import time
 import sys
 import smbus
 
-I2C_CHANNEL = 1
+I2C_CHANNEL = 3
 FT903_I2C_ADDR = 0x1C
 
 print('Pi-puck RGB LEDs example')
