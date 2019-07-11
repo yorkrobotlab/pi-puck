@@ -383,18 +383,6 @@
 		};
 	};
 
-	/* Use a GPIO pin for powering off the Pi-puck board */
-	/* NOTE: This currently does NOT work as expected, so do not enable */
-	fragment@20 {
-		target-path = "/";
-		__dormant__ {
-			gpio-poweroff {
-				compatible = "gpio-poweroff";
-				gpios = <&gpio 5 1>;
-			};
-		};
-	};
-
 	__overrides__ {
 		shutdown_key_disable = <0>,"-1";
 		shutdown_key_debounce = <&pipuck_shutdown>,"debounce-interval:0";
@@ -413,6 +401,5 @@
 		                <&soft_i2c_pipuck_ain3>,"ti,datarate:0";
 		soft_i2c = <0>,"-6+7+8+9+10";
 		soft_i2c_gpio_delay_us = <&i2c_gpio>,"i2c-gpio,delay-us:0";
-		poweroff_enable = <0>,"+20";
 	};
 };

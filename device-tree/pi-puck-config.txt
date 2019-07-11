@@ -26,8 +26,13 @@ dtoverlay=pi-puck
 #dtparam=soft_i2c
 #dtparam=soft_i2c_gpio_delay_us=2
 
-# Set GPIO 5,6 (pins 29,31) to input,pull-up to keep board powered on
-gpio=5,6=ip,pu
+# Set GPIO 5 (pin 29) to input,pull-down so board powers off after shutdown
+# Set GPIO 5 (pin 29) to output,high to keep board powered on until shutdown
+gpio=5=ip,pd
+gpio=5=op,dh
+
+# Set GPIO 6 (pin 31) to input,pull-up for power button
+gpio=6=ip,pu
 
 # Set GPIO 16,24 (pins 36,18) to output,high to release FT903 and e-puck resets
 gpio=16,24=op,dh
