@@ -36,3 +36,7 @@ gpio=6=ip,pu
 
 # Set GPIO 16,24 (pins 36,18) to output,high to release FT903 and e-puck resets
 gpio=16,24=op,dh
+
+# Uncomment the following to set the I2C baud rate to 400kHz
+#dtoverlay=
+#dtparam=i2c_baudrate=400000
