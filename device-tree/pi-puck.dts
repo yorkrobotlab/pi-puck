@@ -108,12 +108,12 @@
 						#size-cells = <0>;
 						pipuck_ain0: channel@4 {
 							reg = <4>;
-							ti,gain = <0>;
+							ti,gain = <1>;
 							ti,datarate = <0>;
 						};
 						pipuck_ain1: channel@5 {
 							reg = <5>;
-							ti,gain = <0>;
+							ti,gain = <1>;
 							ti,datarate = <0>;
 						};
 					};
@@ -206,12 +206,12 @@
 							#size-cells = <0>;
 							soft_i2c_pipuck_ain0: channel@4 {
 								reg = <4>;
-								ti,gain = <0>;
+								ti,gain = <1>;
 								ti,datarate = <0>;
 							};
 							soft_i2c_pipuck_ain1: channel@5 {
 								reg = <5>;
-								ti,gain = <0>;
+								ti,gain = <1>;
 								ti,datarate = <0>;
 							};
 						};
