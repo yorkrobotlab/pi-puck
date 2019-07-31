@@ -1,3 +1,6 @@
 [submodule "ft903/pi-puck-ft903"]
 	path = ft903/pi-puck-ft903
 	url = https://github.com/yorkrobotlab/pi-puck-ft903.git
+[submodule "e-puck1/pi-puck-e-puck1"]
+	path = e-puck1/pi-puck-e-puck1
+	url = https://github.com/yorkrobotlab/pi-puck-e-puck1.git

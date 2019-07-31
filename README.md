@@ -47,7 +47,7 @@ Linux examples for using the Pi-puck.
 
 **[e-puck1/](e-puck1/)**
 
-Example code, bootloader and programming script for the e-puck1.
+PIC firmware, bootloader and programming script for the e-puck1.
 
 
 ## FT903 Code
