@@ -37,3 +37,8 @@ gpio=6=ip,pu
 # Set GPIO 16,24 (pins 36,18) to output,high to release FT903 and e-puck resets
 gpio=16,24=op,dh
 
+# Set GPIO 13 (pins 33) to input,pull-none for charge detect input
+gpio=13=ip,pn
+
+# Set GPIO 22 (pins 15) to output,low for speaker enable (disabled by default)
+gpio=22=op,dl
