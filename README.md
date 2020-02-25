@@ -1,11 +1,10 @@
 # Supporting Files for the Pi-puck Extension Board
 
-The Pi-puck is a [Raspberry Pi](https://www.raspberrypi.org) extension board for the [e-puck](http://www.gctronic.com/doc/index.php?title=E-Puck) and [e-puck2](http://www.gctronic.com/doc/index.php?title=e-puck2) robot platforms, designed and built as a collaboration between the [University of York](https://www.york.ac.uk/robot-lab/) and [GCtronic](http://www.gctronic.com).
-
-Further documentation is available at https://pi-puck.readthedocs.io.
+The Pi-puck is a [Raspberry Pi](https://www.raspberrypi.org) extension board for the [e-puck](https://www.gctronic.com/doc/index.php?title=E-Puck) and [e-puck2](https://www.gctronic.com/doc/index.php?title=e-puck2) robot platforms, designed and built as a collaboration between the [York Robotics Laboratory (YRL)](https://www.york.ac.uk/robot-lab/) at the [University of York](https://www.cs.york.ac.uk), and [GCtronic](https://www.gctronic.com).
 
 For more information about the Pi-puck, see:
-- GCtronic wiki page - http://www.gctronic.com/doc/index.php?title=Pi-puck
+- YRL Pi-puck documentation - https://pi-puck.readthedocs.io
+- GCtronic wiki page - https://www.gctronic.com/doc/index.php?title=Pi-puck
 - Pi-puck on the YRL website - https://www.york.ac.uk/robot-lab/pi-puck/
 - IROS 2017 paper - https://eprints.whiterose.ac.uk/120310/
 
@@ -57,3 +56,12 @@ PIC firmware, bootloader and programming script for the e-puck1.
 **[ft903/](ft903/)**
 
 Firmware and DFU programming script for the FT903 chip.
+
+
+## Documentation
+
+**[docs/](docs/)**
+
+Documentation sources for Read The Docs site (https://pi-puck.readthedocs.io).
+
+These can also be built in several different formats using [Sphinx](https://www.sphinx-doc.org).

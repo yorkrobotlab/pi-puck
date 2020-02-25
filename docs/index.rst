@@ -7,12 +7,12 @@ Pi-puck Extension Board
    :caption: Contents:
 
 | **A Raspberry Pi interface for the e-puck robot platform.**
-| Developed jointly by the `York Robotics Laboratory`_ at the `University of York`_, and `GCtronic`_.
+| Developed jointly by the `York Robotics Laboratory (YRL)`_ at the `University of York`_, and `GCtronic`_.
 
 
 The Pi-puck is an extension for the `e-puck`_ and `e-puck2`_, allowing a `Raspberry Pi Zero W`_ [#]_ to be mounted on the robot, adding Linux support, additional peripherals, and further expansion possibilities.
 
-Documentation on this website is a work in progress.
+Documentation on this website is currently a work in progress.
 
 
 External Links
@@ -25,7 +25,7 @@ External Links
 
 
 Code Repositories
---------------
+-----------------
 
 - `YRL Pi-puck main repository <https://github.com/yorkrobotlab/pi-puck>`_
 - `YRL Pi-puck e-puck1 dsPIC firmware <https://github.com/yorkrobotlab/pi-puck-e-puck1>`_
@@ -41,11 +41,14 @@ Publications
 1. Alan G. Millard, Russell Joyce, James A. Hilder, Cristian Fleșeriu, Leonard Newbrook, Wei Li, Liam J. McDaid, and David M. Halliday. **The Pi-puck extension board: a Raspberry Pi interface for the e-puck robot platform.** In *Proc. 2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2017)*, September 2017. https://eprints.whiterose.ac.uk/120310/
 
 
+
 .. [#] Also compatible with Raspberry Pi Zero WH (with headers included), Raspberry Pi Zero (without built-in wireless), or potentially other Raspberry Pi compatible boards.
 
 
+
 .. _York Robotics Laboratory: https://www.york.ac.uk/robot-lab/
-.. _University of York: https://www.york.ac.uk
+.. _York Robotics Laboratory (YRL): https://www.york.ac.uk/robot-lab/
+.. _University of York: https://www.cs.york.ac.uk
 .. _GCtronic: https://www.gctronic.com
 .. _Raspberry Pi Zero W: https://www.raspberrypi.org/products/raspberry-pi-zero-w/
 .. _e-puck: https://www.gctronic.com/doc/index.php?title=E-Puck
