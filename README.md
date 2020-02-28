@@ -65,3 +65,14 @@ Firmware and DFU programming script for the FT903 chip.
 Documentation sources for Read The Docs site (https://pi-puck.readthedocs.io).
 
 These can also be built in several different formats using [Sphinx](https://www.sphinx-doc.org).
+
+
+## Licence
+
+Hardware designs are licensed under a [Creative Commons Attribution-ShareAlike 4.0 International Licence][cc-by-sa].
+
+Unless otherwise specified, software is licensed under an [MIT Licence][mit].
+
+
+[cc-by-sa]: http://creativecommons.org/licenses/by-sa/4.0/
+[mit]: /LICENSE-MIT
