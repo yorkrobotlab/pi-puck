@@ -1,10 +1,5 @@
-***********************
-Pi-puck Extension Board
-***********************
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+Pi-puck
+=======
 
 | **A Raspberry Pi interface for the e-puck robot platform.**
 | Developed jointly by the `York Robotics Laboratory (YRL)`_ at the `University of York`_, and `GCtronic`_.
@@ -13,6 +8,15 @@ Pi-puck Extension Board
 The Pi-puck is an extension for the `e-puck`_ and `e-puck2`_, allowing a `Raspberry Pi Zero W`_ [#]_ to be mounted on the robot, adding Linux support, additional peripherals, and further expansion possibilities.
 
 Documentation on this website is currently a work in progress.
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents
+
+   about
+   publications
+   extensions/index
 
 
 External Links
@@ -33,12 +37,6 @@ Code Repositories
 - `YRL Pi-puck Debian packages <https://github.com/yorkrobotlab/pi-puck-packages>`_
 - `YRL Pi-puck Raspbian distribution <https://github.com/yorkrobotlab/pi-gen>`_
 - `GCtronic Pi-puck repository <https://github.com/gctronic/Pi-puck>`_
-
-
-Publications
-------------
-
-1. Alan G. Millard, Russell Joyce, James A. Hilder, Cristian Fleșeriu, Leonard Newbrook, Wei Li, Liam J. McDaid, and David M. Halliday. **The Pi-puck extension board: a Raspberry Pi interface for the e-puck robot platform.** In *Proc. 2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2017)*, September 2017. https://eprints.whiterose.ac.uk/120310/
 
 
 

@@ -1,4 +1,4 @@
-# Supporting Files for the Pi-puck Extension Board
+# Supporting Files for the Pi-puck
 
 The Pi-puck is a [Raspberry Pi](https://www.raspberrypi.org) extension board for the [e-puck](https://www.gctronic.com/doc/index.php?title=E-Puck) and [e-puck2](https://www.gctronic.com/doc/index.php?title=e-puck2) robot platforms, designed and built as a collaboration between the [York Robotics Laboratory (YRL)](https://www.york.ac.uk/robot-lab/) at the [University of York](https://www.cs.york.ac.uk), and [GCtronic](https://www.gctronic.com).
 
