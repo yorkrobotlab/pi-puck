@@ -78,7 +78,6 @@ def e_randb_send_all_data(data):
 	__nop_delay(10000)
 
 def e_randb_store_data(channel, data):
-	__write_data(20, data)
 	__write_data(13, (data >> 8) & 0xFF)
 	__write_data(channel, (data & 0xFF))
 
