@@ -98,18 +98,6 @@ def e_randb_set_calculation(type):
 	__write_data(17, type)
 	__nop_delay(10000)
 
-def e_randb_set_range(range):
-	__write_data(12, range)
-	__nop_delay(10000)
-
-def e_randb_store_light_conditions():
-	__write_data(16, 0);
-	__nop_delay(150000)
-
-def e_randb_set_calculation(type):
-	__write_data(17, type)
-	__nop_delay(10000)
-
 def e_randb_get_all_data():
 	# Not yet implemented...
 	raise NotImplementedError
