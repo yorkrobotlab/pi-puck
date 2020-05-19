@@ -1,88 +1,183 @@
 #!/usr/bin/env python3
 #
-# Script for programming e-puck dsPIC firmware from the Pi-puck extension board.
+# Script for programming e-puck1 dsPIC firmware from the Pi-puck extension board.
 #
 # Usage:
-#   e-puck1-program 0000 firmware.hex [dump.memory] [dump.packets]
+#   e-puck1-program [-h] [-m dump.memory] [-p dump.packet] [-r count] [-d] [-e epuck_id | -i epuck_id_file] firmware.hex
 # where:
-#   '0000' is the e-puck's unique number
-#   'firmware.hex' is the firmware HEX file, output from the dsPIC toolchain
+#   '-h' displays help
 #   'dump.memory' is an optional file to output a firmware memory dump to (generated from the HEX)
-#   'dump.packets' is an optional file to output a dump of bootloader packets to (generated from the HEX)
+#   'dump.packet' is an optional file to output a dump of bootloader packets to (generated from the HEX)
+#   '-d' performs a dry-run and does not actually program the robot (dump files are still created)
+#   'count' is the number of retry attempts on a checksum or communication failure (default is 0 (don't retry))
+#   'epuck_id' is the e-puck's unique four-digit serial number OR
+#   'epuck_id_file' is a file containing the e-puck's serial number (defaults to /boot/e-puck_id)
+#   'firmware.hex' is the firmware HEX file, output from the dsPIC toolchain
 #
 # Prerequisites:
-#   - pigpiod' must be running (as root) before using this script.
+#   - 'pigpiod' must be installed. If it is not already running, this script will attempt to run it temporarily.
 #   - The e-puck must first be programmed with the Pi-puck bootloader.
 #   - R30 and R31 must be removed from the Pi-puck PCB (this will disable e-puck Bluetooth)
 #
-# Explanation for the HEX file to bootloader packet format conversion, from https://www.microchip.com/forums/FindPost/982965
+# Explanation for HEX file to bootloader packet format conversion, from https://www.microchip.com/forums/FindPost/982965
 #   > Be aware that the addresses the hex file are x2 the pic address.
 #   > The PIC has 24 bit instructions but they are addressed as if they are 16 bit.
-#   > The hex file has the 24 bits laid out into 32bits with the top 8 bits set as zero. The hex file address is double to allow for this.
+#   > The hex file has the 24 bits laid out into 32bits with the top 8 bits set as zero.
+#   > The hex file address is double to allow for this.
 #
-
+import os
 import sys
 import time
-import pigpio
+import argparse
+import re
+import subprocess
+import signal
 from intelhex import IntelHex
 
-RESET=24
-RX=27
-TX=17
-BAUD=38400
+RESET = 24
+RX = 27
+TX = 17
+BAUD = 38400
 
-BOOTLOADER_ADDR=0x17f00*2
-BOOTLOADER_SIZE=120
+BOOTLOADER_ADDR = 0x17f00 * 2
+BOOTLOADER_SIZE = 120
 
 
 # Dump program memory to file
 def write_memory_file(filename):
-	with open(filename, 'w') as file:
-		file.write('Base address: 0 (length: {} bytes)\n'.format(program_size))
+	with open(filename, "w") as file:
+		file.write("Base address: 0 (length: {} bytes)\n".format(program_size))
 		for addr in range(0, program_size, 16):
 			data = ih.tobinarray(start=addr, size=16)
 			for x in data:
-				file.write('{:02X} '.format(x))
-			file.write('\n')
-		file.write('Base address: {} (length: {} bytes)\n'.format(BOOTLOADER_ADDR, BOOTLOADER_SIZE))
+				file.write("{:02X} ".format(x))
+			file.write("\n")
+		file.write("Base address: {} (length: {} bytes)\n".format(BOOTLOADER_ADDR, BOOTLOADER_SIZE))
 		for addr in range(0, BOOTLOADER_SIZE, 16):
 			data = bootloader_data[addr:addr+16]
 			for x in data:
-				file.write('{:02X} '.format(x))
-			file.write('\n')
+				file.write("{:02X} ".format(x))
+			file.write("\n")
+
 
 # Dump bootloader packets to file (excluding checksums)
 def write_packets_file(filename):
-	with open(filename, 'w') as file:
+	with open(filename, "w") as file:
 		for packet in packets:
-			data = ih.tobinarray(start=addr, size=16)
 			for x in packet[0:100]:
-				file.write('{:02X} '.format(x))
-			file.write('\n')
+				file.write("{:02X} ".format(x))
+			file.write("\n")
 
-def send_bytes(pi, b):
+
+def send_bytes(b):
 	pi.wave_clear()
 	pi.wave_add_serial(TX, BAUD, b)
 	wid = pi.wave_create()
 	pi.wave_send_once(wid)
 
-def recv_bytes(pi):
-	(count, data) = pi.bb_serial_read(RX)
-	return (count, data)
 
-def recv_bytes_blocking(pi):
+def recv_bytes():
+	count, data = pi.bb_serial_read(RX)
+	return count, data
+
+
+def recv_bytes_blocking():
 	count = 0
+	data = None
 	while count == 0:
-		(count, data) = recv_bytes(pi)
-	return (count, data)
+		count, data = recv_bytes()
+	return count, data
 
-print("Reading HEX file...")
 
-# First argument should be e-puck ID
-epuck_id = int(sys.argv[1])
+def clean_exit(code=0, err_message=None):
+	if err_message is not None:
+		print(err_message, file=sys.stderr)
+	# Stop the pigpio instance if it is connected
+	if pi is not None and pi.connected:
+		pi.stop()
+	# Kill the pigpiod process if we started it and it is still running
+	if pigpiod_process is not None and pigpiod_process.poll() is None:
+		pgid = os.getpgid(pigpiod_process.pid)
+		subprocess.run(["sudo", "kill", str(pgid)])
+	sys.exit(code)
+
+
+def sigint_handler(signum, frame):
+	clean_exit()
+
+
+parser = argparse.ArgumentParser(description="Program the e-puck1 dsPIC firmware from the Pi-puck extension board.")
+parser.add_argument("hex_file", metavar="firmware.hex", help="Intel HEX format firmware file to program")
+parser.add_argument("-m", "--memory", metavar="dump.memory", help="output memory dump to this file")
+parser.add_argument("-p", "--packets", metavar="dump.packets", help="output packets dump to this file")
+parser.add_argument("-r", "--retries", metavar="count", type=int, default=0,
+                    help="number of times to retry on checksum failure (default 0)")
+parser.add_argument("-d", "--dryrun", action="store_true", help="do not actually perform the programming operation")
+group = parser.add_mutually_exclusive_group()
+group.add_argument("-e", "--epuck", metavar="epuck_id", help="override e-puck ID number")
+group.add_argument("-i", "--idfile", metavar="epuck_id_file", default="/boot/e-puck_id",
+                   help="override e-puck ID file (defaults to /boot/e-puck_id)")
+args = parser.parse_args()
+
+hex_file = args.hex_file
+memory_output = args.memory
+packets_output = args.packets
+retries = args.retries
+dry_run = args.dryrun
+epuck_id = args.epuck
+epuck_id_file = args.idfile
+
+# Register SIGINT handler and variable placeholders so we always exit cleanly
+pi = None
+pigpiod_process = None
+signal.signal(signal.SIGINT, sigint_handler)
+
+# Only import pigpio and attach to the daemon if actually programming the robot
+if not dry_run:
+	try:
+		import pigpio
+	except ImportError:
+		clean_exit(1, "This program requires the 'pigpio' Python module to be installed.")
+	# Try connecting to pigpio daemon
+	pi = pigpio.pi("localhost", 8888, False)
+	if not pi.connected:
+		# If the daemon isn't running, try to run it ourselves on a different port
+		print("Starting pigpio daemon as root...")
+		try:
+			pigpiod_process = subprocess.Popen(["sudo", "pigpiod", "-l", "-g", "-p28563"], preexec_fn=os.setpgrp)
+			time.sleep(0.5)
+			if pigpiod_process.poll() is not None:
+				clean_exit(1, "Error starting pigpio daemon.\nRun 'sudo pigpiod' manually and try again.")
+		except (OSError, ValueError) as e:
+			clean_exit(1, "Error starting pigpio daemon: {}.\nRun 'sudo pigpiod' manually and try again.".format(e))
+		# Try connecting to pigpio daemon again
+		pi = pigpio.pi("localhost", 28563, False)
+		if not pi.connected:
+			clean_exit(1, "Error connecting to pigpio daemon.\nRun 'sudo pigpiod' manually and try again.")
+
+# Read e-puck ID from file if not explicitly set
+if epuck_id is None:
+	try:
+		with open(epuck_id_file) as f:
+			epuck_id = f.readline().strip()
+	except FileNotFoundError as e:
+		clean_exit(1, "Invalid e-puck ID file '{}'".format(epuck_id_file))
+
+# Check the e-puck ID matches the expected format (four digits)
+if len(epuck_id) != 4 or re.match("\\d\\d\\d\\d", epuck_id) is None:
+	clean_exit(1, "Invalid e-puck ID '{}'".format(epuck_id))
+
+if epuck_id_file is not None:
+	print("Using e-puck ID '{}' (from '{}')".format(epuck_id, epuck_id_file))
+else:
+	print("Using e-puck ID '{}'".format(epuck_id))
 
 # Load program data from HEX file
-ih = IntelHex(sys.argv[2])
+print("Reading HEX file...")
+try:
+	ih = IntelHex(hex_file)
+except Exception as e:
+	clean_exit(1, "{}\nUnable to open HEX file '{}'".format(e, hex_file))
 
 # Find size of main program (end of final segment within first 256K)
 program_size = 0
@@ -93,8 +188,8 @@ for segment in ih.segments():
 # Create data for bootloader packet
 # (data taken from Perl/C++ uploaders)
 bootloader_data = [0xff] * BOOTLOADER_SIZE
-bootloader_data[108] = epuck_id & 0xff
-bootloader_data[109] = (epuck_id >> 8) & 0xff
+bootloader_data[108] = int(epuck_id) & 0xff
+bootloader_data[109] = (int(epuck_id) >> 8) & 0xff
 bootloader_data[110] = 0x00
 bootloader_data[111] = 0x00
 bootloader_data[112] = ih[0]
@@ -125,11 +220,7 @@ packets = []
 for addr in range(0, program_size, 128):
 	data = ih.tobinarray(start=addr, size=128)
 	write_addr = int(addr / 2)
-	packet = []
-	packet.append(write_addr & 0xff)
-	packet.append((write_addr >> 8) & 0xff)
-	packet.append((write_addr >> 16) & 0xff)
-	packet.append(0x60)
+	packet = [write_addr & 0xff, (write_addr >> 8) & 0xff, (write_addr >> 16) & 0xff, 0x60]
 	for i in range(0, len(data), 4):
 		packet.extend(data[i:i+3])
 	packet.extend([0xff] * (100 - len(packet)))
@@ -145,11 +236,7 @@ for addr in range(0, program_size, 128):
 
 for addr in range(0, BOOTLOADER_SIZE, 128):
 	write_addr = int(BOOTLOADER_ADDR / 2)
-	packet = []
-	packet.append(write_addr & 0xff)
-	packet.append((write_addr >> 8) & 0xff)
-	packet.append((write_addr >> 16) & 0xff)
-	packet.append(0x60)
+	packet = [write_addr & 0xff, (write_addr >> 8) & 0xff, (write_addr >> 16) & 0xff, 0x60]
 	for i in range(0, len(bootloader_data), 4):
 		packet.extend(bootloader_data[i:i+3])
 	packet.extend([0xff] * (100 - len(packet)))
@@ -164,89 +251,106 @@ for addr in range(0, BOOTLOADER_SIZE, 128):
 	packets.append(packet)
 
 # Output files if specified
-if len(sys.argv) > 3:
-	write_memory_file(sys.argv[3])
-if len(sys.argv) > 4:
-	write_packets_file(sys.argv[4])
+if memory_output is not None:
+	print("Outputting memory dump to '{}'...".format(memory_output))
+	write_memory_file(memory_output)
+if packets_output is not None:
+	print("Outputting packets dump to '{}'...".format(packets_output))
+	write_packets_file(packets_output)
 
-print("Ready to send data")
-
-try:
-	pi = pigpio.pi()
-	pi.set_mode(RX, pigpio.INPUT)
-	pi.set_mode(TX, pigpio.OUTPUT)
-	pi.set_mode(RESET, pigpio.OUTPUT)
-	pi.bb_serial_read_open(RX, BAUD, 8)
-
-	# Hold e-puck in reset
-	print("Resetting e-puck...")
-	pi.write(RESET, 0)
-
-	# Flush UART send/receive
-	time.sleep(0.1)
-	pi.wave_clear()
-	recv_bytes(pi)
-	time.sleep(0.1)
-
-	# print("Reset e-puck now!")
-
-	# Release e-puck reset
-	pi.write(RESET, 1)
-	
-	timeout = 50
-	ready = False
-	while not ready and timeout > 0:
-		time.sleep(0.1)
-		print('.', end='')
-		sys.stdout.flush()
-		send_bytes(pi, [0xc1])
-		time.sleep(0.1)
-		(count, data) = recv_bytes(pi)
-		if count > 0:
-			# print()
-			# print(" ", data)
-			try:
-				if data.decode('ASCII') == 'qK':
-					ready = True
-			except UnicodeDecodeError:
-				pass
-		timeout -= 1
-
-	if ready:
-		print()
-		print("ACK received. Sending data...")
-	else:
-		raise Exception("Timed out")
-
-	sent = 1
-	total = len(packets)
-	for packet in packets:
-		print("Sending {} of {} packets... ".format(sent, total), end='')
-		sys.stdout.flush()
-		send_bytes(pi, packet)
-		sent += 1
-		(count, data) = recv_bytes_blocking(pi)
+if not dry_run:
+	print("Ready to send data")
+	while True:
 		try:
-			if data.decode('ASCII') == 'K':
-				print("OK")
-				pass
-			elif data.decode('ASCII') == 'N':
-				raise Exception("Checksum error from bootloader")
+			pi.set_mode(RX, pigpio.INPUT)
+			pi.set_mode(TX, pigpio.OUTPUT)
+			pi.set_mode(RESET, pigpio.OUTPUT)
+			pi.bb_serial_read_open(RX, BAUD, 8)
+
+			print("Resetting e-puck and connecting to bootloader...")
+
+			timeout1 = 5
+			ready = False
+			while not ready and timeout1 > 0:
+				# Hold e-puck in reset
+				print("*", end="")
+				pi.write(RESET, 0)
+				time.sleep(0.1)
+
+				# Flush UART send/receive
+				time.sleep(0.1)
+				pi.wave_clear()
+				recv_bytes()
+				time.sleep(0.1)
+
+				# Release e-puck reset
+				pi.write(RESET, 1)
+
+				# Try connecting to bootloader
+				timeout2 = 5
+				while not ready and timeout2 > 0:
+					print(".", end="")
+					sys.stdout.flush()
+					send_bytes([0xc1])
+					time.sleep(0.1)
+					(count, data) = recv_bytes()
+					if count > 0:
+						try:
+							if data.decode("ASCII") == "qK":
+								ready = True
+						except UnicodeDecodeError:
+							pass
+					timeout2 -= 1
+					time.sleep(0.1)
+				timeout1 -= 1
+
+			if ready:
+				print()
+				print("ACK received. Sending data...")
 			else:
-				raise Exception("Bad response from bootloader: ", data)
-		except UnicodeDecodeError:
-			raise Exception("Bad response from bootloader: ", data)
+				raise Exception(" Timed out")
 
-	print("Sending termination sequence...")
-	send_bytes(pi, [0x95, 0x00, 0x00, 0xff])
+			sent = 1
+			total = len(packets)
+			str_len = len(str(total))
+			for packet in packets:
+				print("Sending packet {: >{}} of {}... ".format(sent, str_len, total), end="")
+				sys.stdout.flush()
+				send_bytes(packet)
+				sent += 1
+				(count, data) = recv_bytes_blocking()
+				try:
+					if data.decode("ASCII") == "K":
+						print("\r", end="")
+						pass
+					elif data.decode("ASCII") == "N":
+						raise Exception(" Checksum error from bootloader")
+					else:
+						raise Exception(" Bad response from bootloader: ", data)
+				except UnicodeDecodeError:
+					raise Exception(" Bad response from bootloader: ", data)
 
-	print("Done.")
+			print("\nSending termination sequence...")
+			send_bytes([0x95, 0x00, 0x00, 0xff])
 
-	pi.bb_serial_read_close(RX)
-	pi.stop()
+			print("Closing serial connection...")
 
-except Exception as e:
-	print(e)
-	pi.bb_serial_read_close(RX)
-	pi.stop()
-	sys.exit(1)
+			retries = 0
+			pi.wave_clear()
+			pi.bb_serial_read_close(RX)
+			pi.stop()
+			break
+
+		except Exception as e:
+			print(e, file=sys.stderr)
+			if pi.connected:
+				pi.wave_clear()
+				pi.bb_serial_read_close(RX)
+			if retries > 0:
+				print("Retrying ({} attempts remaining)...".format(retries))
+				retries -= 1
+				continue
+			clean_exit(1)
+
+print("Done.")
+clean_exit()
