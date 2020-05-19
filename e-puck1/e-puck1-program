@@ -3,7 +3,7 @@
 # Script for programming e-puck dsPIC firmware from the Pi-puck extension board.
 #
 # Usage:
-#   e-puck-program 0000 firmware.hex [dump.memory] [dump.packets]
+#   e-puck1-program 0000 firmware.hex [dump.memory] [dump.packets]
 # where:
 #   '0000' is the e-puck's unique number
 #   'firmware.hex' is the firmware HEX file, output from the dsPIC toolchain
