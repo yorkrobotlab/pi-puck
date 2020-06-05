@@ -12,10 +12,14 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../python-library/'))
 
+# Set up autodoc and intersphinx
+autodoc_mock_imports = ['RPi', 'RPi.GPIO', 'smbus', 'VL53L1X']
+autoclass_content = 'both'
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 # -- Project information -----------------------------------------------------
 
@@ -39,7 +43,10 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx_rtd_theme'
+    'sphinx_rtd_theme',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

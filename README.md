@@ -44,6 +44,13 @@ Various Linux configuration files for Pi-puck hardware.
 Linux examples for using the Pi-puck.
 
 
+## Python Library
+
+**[python-library/](python-library/)**
+
+Python library (and example code) for controlling the Pi-puck and e-puck hardware.
+
+
 ## e-puck1 Code
 
 **[e-puck1/](e-puck1/)**

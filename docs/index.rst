@@ -17,6 +17,7 @@ Documentation on this website is currently a work in progress.
    about
    publications
    extensions/index
+   python-library/index
 
 
 External Links
