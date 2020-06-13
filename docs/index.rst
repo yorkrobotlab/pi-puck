@@ -16,6 +16,7 @@ Documentation on this website is currently a work in progress.
 
    about
    publications
+   hardware
    extensions/index
    python-library/index
 
