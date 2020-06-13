@@ -20,8 +20,8 @@ See https://github.com/yorkrobotlab/pi-puck-expansion-board.
 Hardware block diagram
 ^^^^^^^^^^^^^^^^^^^^^^
 .. image:: /_static/yrl-expansion-block-diagram.png
-  :alt: YRL Expansion Board block diagram
-  :target: /_static/yrl-expansion-block-diagram.pdf
+   :alt: YRL Expansion Board block diagram
+:download:`Download as PDF </_static/yrl-expansion-block-diagram.pdf>`
 
 
 Time-of-Flight Distance Sensor
