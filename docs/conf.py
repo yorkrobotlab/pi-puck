@@ -16,10 +16,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../python-library/'))
 
-# Set up autodoc and intersphinx
-autodoc_mock_imports = ['RPi', 'RPi.GPIO', 'smbus', 'VL53L1X']
-autoclass_content = 'both'
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 # -- Project information -----------------------------------------------------
 
@@ -46,7 +42,8 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.intersphinx'
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.autosectionlabel'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -75,6 +72,15 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
+
+# Set up autodoc and intersphinx
+autodoc_mock_imports = ['RPi', 'RPi.GPIO', 'smbus', 'VL53L1X']
+autoclass_content = 'both'
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+
+# Set up auto section labelling
+autosectionlabel_prefix_document = False
+autosectionlabel_maxdepth = 1
 
 
 # -- Options for HTML output -------------------------------------------------
