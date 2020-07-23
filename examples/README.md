@@ -9,3 +9,8 @@ Basic test Python script for the the Pi-puck RGB LEDs, controlled over I2C via t
 ### [e-RandB/](e-RandB/)
 
 Basic Python library and examples for working with the e-puck Range and Bearing Board (see https://www.gctronic.com/doc/index.php/Others_Extensions for more information).
+
+
+### [ground-sensor/](ground-sensor/)
+
+Basic example for working with the e-puck Ground Sensor Board (see https://www.gctronic.com/doc/index.php/Others_Extensions for more information).
