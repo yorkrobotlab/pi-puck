@@ -1,7 +1,8 @@
 """Python module for controlling the Pi-puck."""
 
-from smbus import SMBus
 from typing import Sequence, Optional, Tuple
+import os
+from smbus import SMBus
 
 import RPi.GPIO as GPIO
 
@@ -13,7 +14,8 @@ from .tof_sensor import ToFSensor
 from .yrl_expansion import YRLExpansion
 
 
-_BOARD_I2C_CHANNEL = 3
+_BOARD_I2C_CHANNEL = 11
+_BOARD_LEGACY_I2C_CHANNEL = 3
 _SPEAKER_ENABLE_PIN = 15
 _BATTERY_CHARGE_DETECT_PIN = 33
 _BATTERY_MIN_VOLTAGE = 3.3
@@ -22,8 +24,10 @@ _BATTERY_CHARGE_MIN_VOLTAGE = 3.778
 _BATTERY_CHARGE_MAX_VOLTAGE = 4.198
 _BATTERY_VOLTAGE_RANGE = _BATTERY_MAX_VOLTAGE - _BATTERY_MIN_VOLTAGE
 _BATTERY_CHARGE_RANGE = _BATTERY_CHARGE_MAX_VOLTAGE - _BATTERY_CHARGE_MIN_VOLTAGE
-_EPUCK_BATTERY_PATH = "/sys/bus/i2c/drivers/ads1015/3-0048/in4_input"
-_AUX_BATTERY_PATH = "/sys/bus/i2c/drivers/ads1015/3-0048/in5_input"
+_EPUCK_BATTERY_PATH = "/sys/bus/i2c/devices/{}-0048/iio:device0/in_voltage0_{}"
+_AUX_BATTERY_PATH = "/sys/bus/i2c/devices/{}-0048/iio:device0/in_voltage1_{}"
+_EPUCK_LEGACY_BATTERY_PATH = "/sys/bus/i2c/drivers/ads1015/{}-0048/in4_input"
+_AUX_LEGACY_BATTERY_PATH = "/sys/bus/i2c/drivers/ads1015/{}-0048/in5_input"
 
 _led_colours = {
 	'off': 0x00,
@@ -51,7 +55,29 @@ class PiPuck:
 		"""
 
 		#: main Pi-puck board SMBus interface, instance of :class:`smbus.SMBus`
-		self._board_bus = SMBus(_BOARD_I2C_CHANNEL)  # type: smbus.SMBus
+		self._board_bus = None  # type: smbus.SMBus
+		board_bus_number = _BOARD_I2C_CHANNEL
+		try:
+			self._board_bus = SMBus(board_bus_number)
+		except FileNotFoundError:
+			board_bus_number = _BOARD_LEGACY_I2C_CHANNEL
+			self._board_bus = SMBus(board_bus_number)
+
+		self._epuck_battery_path = _EPUCK_BATTERY_PATH.format(board_bus_number, "raw")
+		if os.path.isfile(self._epuck_battery_path):
+			with open(_EPUCK_BATTERY_PATH.format(board_bus_number, "scale"), "r") as battery_file:
+				self._epuck_battery_scale = float(battery_file.read())
+		else:
+			self._epuck_battery_path = _EPUCK_LEGACY_BATTERY_PATH.format(board_bus_number)
+			self._epuck_battery_scale = 1.0
+
+		self._aux_battery_path = _AUX_BATTERY_PATH.format(board_bus_number, "raw")
+		if os.path.isfile(self._aux_battery_path):
+			with open(_AUX_BATTERY_PATH.format(board_bus_number, "scale"), "r") as battery_file:
+				self._aux_battery_scale = float(battery_file.read())
+		else:
+			self._aux_battery_path = _AUX_LEGACY_BATTERY_PATH.format(board_bus_number)
+			self._aux_battery_scale = 1.0
 
 		#: FT903 microcontroller controller, instance of :class:`pipuck.ft903.FT903`
 		self.ft903 = FT903(self._board_bus)  # type: pipuck.ft903.FT903
@@ -172,13 +198,14 @@ class PiPuck:
 		return GPIO.input(_BATTERY_CHARGE_DETECT_PIN) == GPIO.HIGH
 
 	@staticmethod
-	def convert_adc_to_voltage(adc_value: str) -> float:
+	def convert_adc_to_voltage(adc_value: str, scale: float = 1.0) -> float:
 		"""Convert ADC reading to voltage.
 
 		:param adc_value: raw value from ADC file (in mV)
+		:param scale: scaling factor of the ADC channel
 		:return: current measured battery voltage (in V)
 		"""
-		return float(adc_value) / 500.0
+		return (float(adc_value) * scale) / 500.0
 
 	def get_battery_state(self, battery_type: str = 'epuck') -> Tuple[bool, float, float]:
 		"""Get current battery state.
@@ -188,13 +215,15 @@ class PiPuck:
 		"""
 		charging = self.battery_is_charging
 		if battery_type == 'epuck':
-			battery_path = _EPUCK_BATTERY_PATH
+			battery_path = self._epuck_battery_path
+			scale = self._epuck_battery_scale
 		elif battery_type == 'aux':
-			battery_path = _AUX_BATTERY_PATH
+			battery_path = self._aux_battery_path
+			scale = self._aux_battery_scale
 		else:
 			return charging, 0.0, 0.0
 		with open(battery_path, "r") as battery_file:
-			voltage = self.convert_adc_to_voltage(battery_file.read())
+			voltage = self.convert_adc_to_voltage(battery_file.read(), scale)
 		# Attempt to determine the charge/discharge level using some measured constants
 		if charging:
 			percentage = (voltage - _BATTERY_CHARGE_MIN_VOLTAGE) / _BATTERY_CHARGE_RANGE

@@ -1,12 +1,10 @@
-from pipuck import epuck
-
-_EPUCK2_I2C_CHANNEL = 4
-_EPUCK2_I2C_ADDRESS = 0x1f
+from typing import Optional
+from .epuck import EPuck
 
 
-class EPuck2(epuck.EPuck):
+class EPuck2(EPuck):
 	"""Class for interfacing with an e-puck2 robot"""
 
-	def __init__(self, i2c_bus=_EPUCK2_I2C_CHANNEL, i2c_address=_EPUCK2_I2C_ADDRESS):
+	def __init__(self, i2c_bus: Optional[int] = None, i2c_address: Optional[int] = None):
 		super().__init__(i2c_bus, i2c_address)
 		print("e-puck2 not yet implemented")

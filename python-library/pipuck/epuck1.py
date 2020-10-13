@@ -1,7 +1,6 @@
+from typing import Optional
 from .epuck import EPuck
 
-_EPUCK1_I2C_CHANNEL = 4
-_EPUCK1_I2C_ADDRESS = 0x1f
 
 # Register addresses
 OUTER_LEDS = 0
@@ -34,7 +33,7 @@ IR7_AMBIENT = 22
 class EPuck1(EPuck):
 	"""Class for interfacing with an e-puck1 robot"""
 
-	def __init__(self, i2c_bus=_EPUCK1_I2C_CHANNEL, i2c_address=_EPUCK1_I2C_ADDRESS):
+	def __init__(self, i2c_bus: Optional[int] = None, i2c_address: Optional[int] = None):
 		super().__init__(i2c_bus, i2c_address)
 
 	def set_outer_leds_byte(self, leds):
