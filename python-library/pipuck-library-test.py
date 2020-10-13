@@ -37,6 +37,14 @@ def main():
 	pipuck = PiPuck(epuck_version, [test_tof] * 6, test_expansion)
 
 	print()
+	charging, voltage, percentage = pipuck.get_battery_state("epuck")
+	print("e-puck battery status: {}, {}V, {:.2f}%"
+	      .format("Charging" if charging else "Discharging", voltage, percentage * 100))
+	charging, voltage, percentage = pipuck.get_battery_state("aux")
+	print("   Aux battery status: {}, {}V, {:.2f}%"
+	      .format("Charging" if charging else "Discharging", voltage, percentage * 100))
+
+	print()
 	print("Cycling RGB LEDs...")
 	print(" front-left: ", end="")
 	cycle_led(pipuck, 2)
