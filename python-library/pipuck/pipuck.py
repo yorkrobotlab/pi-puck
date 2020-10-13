@@ -1,7 +1,7 @@
 """Python module for controlling the Pi-puck."""
 
 from smbus import SMBus
-from typing import Sequence, Optional, Union, Tuple
+from typing import Sequence, Optional, Tuple
 
 import RPi.GPIO as GPIO
 
@@ -41,18 +41,6 @@ _led_colours = {
 class PiPuck:
 	"""Main Pi-puck controller class."""
 
-	#: main Pi-puck board SMBus interface, instance of :class:`smbus.SMBus`
-	_board_bus: SMBus
-	#: FT903 microcontroller controller, instance of :class:`pipuck.ft903.FT903`
-	ft903: FT903
-	#: e-puck robot controller, either :obj:`None` or instance of :class:`pipuck.epuck.EPuck`
-	epuck: Union[EPuck, EPuck1, EPuck2, None]
-	#: time-of-flight sensor controllers, 6-tuple of either :class:`pipuck.tof_sensor.ToFSensor` instances or :obj:`None`
-	tof_sensors: Tuple[Optional[ToFSensor], Optional[ToFSensor], Optional[ToFSensor],
-	                   Optional[ToFSensor], Optional[ToFSensor], Optional[ToFSensor]]
-	#: expansion board controller, either :obj:`None` or instance of :class:`pipuck.yrl_expansion.YRLExpansion`
-	expansion: Optional[YRLExpansion]
-
 	def __init__(self, epuck_version: Optional[int] = None,
 	             tof_sensors: Sequence[bool] = (False, False, False, False, False, False),
 	             yrl_expansion: bool = False) -> None:
@@ -61,16 +49,21 @@ class PiPuck:
 		:param tof_sensors: time-of-flight sensor boards attached (6 element tuple/list of :class:`bool` values)
 		:param yrl_expansion: YRL Expansion Board attached
 		"""
-		self._board_bus = SMBus(_BOARD_I2C_CHANNEL)
-		self.ft903 = FT903(self._board_bus)
 
+		#: main Pi-puck board SMBus interface, instance of :class:`smbus.SMBus`
+		self._board_bus = SMBus(_BOARD_I2C_CHANNEL)  # type: smbus.SMBus
+
+		#: FT903 microcontroller controller, instance of :class:`pipuck.ft903.FT903`
+		self.ft903 = FT903(self._board_bus)  # type: pipuck.ft903.FT903
+
+		#: e-puck robot controller, either :obj:`None` or instance of :class:`pipuck.epuck.EPuck`
+		self.epuck = None  # type: Optional[pipuck.epuck.EPuck]
 		if epuck_version == 1:
 			self.epuck = EPuck1()
 		elif epuck_version == 2:
 			self.epuck = EPuck2()
-		else:
-			self.epuck = None
 
+		#: time-of-flight sensor controllers, 6-tuple of either :class:`pipuck.tof_sensor.ToFSensor` instances or :obj:`None`
 		self.tof_sensors = (
 			ToFSensor(0) if tof_sensors[0] else None,
 			ToFSensor(1) if tof_sensors[1] else None,
@@ -78,12 +71,12 @@ class PiPuck:
 			ToFSensor(3) if tof_sensors[3] else None,
 			ToFSensor(4) if tof_sensors[4] else None,
 			ToFSensor(5) if tof_sensors[5] else None
-		)
+		)  # type: Tuple[Optional[pipuck.tof_sensor.ToFSensor], Optional[pipuck.tof_sensor.ToFSensor], Optional[pipuck.tof_sensor.ToFSensor], Optional[pipuck.tof_sensor.ToFSensor], Optional[pipuck.tof_sensor.ToFSensor], Optional[pipuck.tof_sensor.ToFSensor]]
 
+		#: expansion board controller, either :obj:`None` or instance of :class:`pipuck.yrl_expansion.YRLExpansion`
+		self.expansion = None  # type: Optional[pipuck.yrl_expansion.YRLExpansion]
 		if yrl_expansion:
 			self.expansion = YRLExpansion(self._board_bus)
-		else:
-			self.expansion = None
 
 		GPIO.setmode(GPIO.BOARD)
 		GPIO.setup(_SPEAKER_ENABLE_PIN, GPIO.OUT, initial=GPIO.LOW)
