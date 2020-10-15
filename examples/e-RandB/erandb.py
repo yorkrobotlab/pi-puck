@@ -5,10 +5,10 @@
 
 import time
 import smbus
-import math
 
 
-I2C_CHANNEL = 4
+I2C_CHANNEL = 12
+LEGACY_I2C_CHANNEL = 4
 RANDB_I2C_ADDR = 0x20
 
 ON_BOARD = 0
@@ -32,7 +32,10 @@ def __nop_delay(t):
 
 def e_init_randb():
 	global __bus
-	__bus = smbus.SMBus(I2C_CHANNEL)
+	try:
+		__bus = smbus.SMBus(I2C_CHANNEL)
+	except FileNotFoundError:
+		__bus = smbus.SMBus(LEGACY_I2C_CHANNEL)
 
 def e_randb_get_if_received():
 	data = __read_data(0)
@@ -68,13 +71,13 @@ def e_randb_get_bearing():
 	return angle * 0.0001
 
 def e_randb_reception():
-	# Not yet implemented...
+	# Not yet implemented...
 	raise NotImplementedError
 
 def e_randb_send_all_data(data):
-	__write_data(13, (data >> 8) & 0xFF);
+	__write_data(13, (data >> 8) & 0xFF)
 	__nop_delay(1000)
-	__write_data(14, (data & 0xFF));
+	__write_data(14, (data & 0xFF))
 	__nop_delay(10000)
 
 def e_randb_store_data(channel, data):
@@ -90,7 +93,7 @@ def e_randb_set_range(range):
 	__nop_delay(10000)
 
 def e_randb_store_light_conditions():
-	__write_data(16, 0);
+	__write_data(16, 0)
 	__nop_delay(150000)
 
 def e_randb_set_calculation(type):
@@ -98,9 +101,9 @@ def e_randb_set_calculation(type):
 	__nop_delay(10000)
 
 def e_randb_get_all_data():
-	# Not yet implemented...
+	# Not yet implemented...
 	raise NotImplementedError
 
 def e_randb_all_reception():
-	# Not yet implemented...
+	# Not yet implemented...
 	raise NotImplementedError

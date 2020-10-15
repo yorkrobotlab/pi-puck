@@ -28,6 +28,7 @@ _EPUCK_BATTERY_PATH = "/sys/bus/i2c/devices/{}-0048/iio:device0/in_voltage0_{}"
 _AUX_BATTERY_PATH = "/sys/bus/i2c/devices/{}-0048/iio:device0/in_voltage1_{}"
 _EPUCK_LEGACY_BATTERY_PATH = "/sys/bus/i2c/drivers/ads1015/{}-0048/in4_input"
 _AUX_LEGACY_BATTERY_PATH = "/sys/bus/i2c/drivers/ads1015/{}-0048/in5_input"
+_LEGACY_BATTERY_SCALE = 1.0
 
 _led_colours = {
 	'off': 0x00,
@@ -63,21 +64,21 @@ class PiPuck:
 			board_bus_number = _BOARD_LEGACY_I2C_CHANNEL
 			self._board_bus = SMBus(board_bus_number)
 
-		self._epuck_battery_path = _EPUCK_BATTERY_PATH.format(board_bus_number, "raw")
-		if os.path.isfile(self._epuck_battery_path):
-			with open(_EPUCK_BATTERY_PATH.format(board_bus_number, "scale"), "r") as battery_file:
-				self._epuck_battery_scale = float(battery_file.read())
-		else:
+		# Determine actual path to use for ADC driver (try iio, then hwmon)
+		if os.path.exists(_EPUCK_BATTERY_PATH.format(board_bus_number, "raw")):
+			self._epuck_battery_path = _EPUCK_BATTERY_PATH.format(board_bus_number, "raw")
+			self._aux_battery_path = _AUX_BATTERY_PATH.format(board_bus_number, "raw")
+			self._epuck_scale_path = _EPUCK_BATTERY_PATH.format(board_bus_number, "scale")
+			self._aux_scale_path = _AUX_BATTERY_PATH.format(board_bus_number, "scale")
+		elif os.path.exists(_EPUCK_LEGACY_BATTERY_PATH.format(board_bus_number)):
 			self._epuck_battery_path = _EPUCK_LEGACY_BATTERY_PATH.format(board_bus_number)
-			self._epuck_battery_scale = 1.0
-
-		self._aux_battery_path = _AUX_BATTERY_PATH.format(board_bus_number, "raw")
-		if os.path.isfile(self._aux_battery_path):
-			with open(_AUX_BATTERY_PATH.format(board_bus_number, "scale"), "r") as battery_file:
-				self._aux_battery_scale = float(battery_file.read())
-		else:
 			self._aux_battery_path = _AUX_LEGACY_BATTERY_PATH.format(board_bus_number)
-			self._aux_battery_scale = 1.0
+			self._epuck_scale_path = None
+			self._aux_scale_path = None
+		else:
+			raise FileNotFoundError
+
+		print(self._epuck_scale_path)
 
 		#: FT903 microcontroller controller, instance of :class:`pipuck.ft903.FT903`
 		self.ft903 = FT903(self._board_bus)  # type: pipuck.ft903.FT903
@@ -216,12 +217,17 @@ class PiPuck:
 		charging = self.battery_is_charging
 		if battery_type == 'epuck':
 			battery_path = self._epuck_battery_path
-			scale = self._epuck_battery_scale
+			scale_path = self._epuck_scale_path
 		elif battery_type == 'aux':
 			battery_path = self._aux_battery_path
-			scale = self._aux_battery_scale
+			scale_path = self._aux_scale_path
 		else:
 			return charging, 0.0, 0.0
+		if scale_path is not None:
+			with open(scale_path, "r") as scale_file:
+				scale = float(scale_file.read())
+		else:
+			scale = _LEGACY_BATTERY_SCALE
 		with open(battery_path, "r") as battery_file:
 			voltage = self.convert_adc_to_voltage(battery_file.read(), scale)
 		# Attempt to determine the charge/discharge level using some measured constants

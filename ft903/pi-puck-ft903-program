@@ -22,10 +22,14 @@ gpio write 27 0
 sleep 0.1
 gpio write 27 1
 
-# Wait for the device to reset, then send DFU enable command over I2C
+# Wait for the device to reset, then send DFU enable command over I2C (trying bus 11, then bus 3)
 sleep 1
 echo Sending DFU enable I2C command...
-i2cset -y 3 0x1c 0xff
+if [ -c "/dev/i2c-11"]; then
+    i2cset -y 11 0x1c 0xff
+else
+    i2cset -y 3 0x1c 0xff
+fi
 
 # Wait for the USB interface to enumerate, then program the firmware
 sleep 2

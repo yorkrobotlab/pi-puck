@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
 import time
-import sys
 import smbus
 
-I2C_CHANNEL = 3
+I2C_CHANNEL = 11
+LEGACY_I2C_CHANNEL = 3
 FT903_I2C_ADDR = 0x1C
 
 print('Pi-puck RGB LEDs example')
 
 print('Initialising I2C...')
 
-bus = smbus.SMBus(I2C_CHANNEL)
+try:
+	bus = smbus.SMBus(I2C_CHANNEL)
+except FileNotFoundError:
+	bus = smbus.SMBus(LEGACY_I2C_CHANNEL)
 
 print('Cycling LEDs...')
 
